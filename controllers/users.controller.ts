@@ -1,10 +1,14 @@
-import User from "../models/User";
+import { RowDataPacket } from "mysql2";
+import { executeQuery } from "../database/connection";
 
 export const pong = (req, res) => {
     return res.status(200).json('pong');
 }
 
-export const fetchInfo = (req, res) => {
-    const user = new User("John Doe", "john_awesome_doe", 40, "red");
-    return res.status(200).json(user);
+export const fetchInfo = async (req, res) => {
+    const query = "SELECT * FROM Users"
+    const results: RowDataPacket[] = await executeQuery(query, null)
+    console.log(results)
+
+    return res.status(200).json("correct request");
 }
