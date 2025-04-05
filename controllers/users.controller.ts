@@ -1,11 +1,5 @@
-import { RowDataPacket } from "mysql2";
 import User from "../models/User";
-
 import { generateJWT, verifyJWT } from "../helpers/jwt";
-
-export const pong = (req, res) => {
-    return res.status(200).json('pong');
-}
 
 // TODO: Crear endpoint de producción con validación de contraseña.
 // Endpoint temporal para probar JWT.
