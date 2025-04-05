@@ -1,5 +1,6 @@
 import User from "../models/User";
 import { generateJWT, verifyJWT } from "../helpers/jwt";
+import { generateUUID } from "../helpers/uuid";
 
 // TODO: Crear endpoint de producción con validación de contraseña.
 // Endpoint temporal para probar JWT.
@@ -43,4 +44,11 @@ export const testPasswordValidation = async (req, res) => {
     const validationStatus = await User.validateCredentials(email, password);
 
     return res.sendStatus(validationStatus);
+}
+
+// TODO: Implementar UUID al registrar usuarios.
+// Endpoint temporal para probar generación de UUID.
+export const testUUID = (req, res) => {
+    const id = generateUUID();
+    return res.status(200).json(id);
 }
