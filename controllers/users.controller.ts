@@ -52,3 +52,9 @@ export const testUUID = (req, res) => {
     const id = generateUUID();
     return res.status(200).json(id);
 }
+
+// TODO: Eliminar endpoint de prueba.
+// Endpoint temporal para probar la API de solicitudes en frontend.
+export const testHTTPClientAPI = (req, res) => {
+    return res.status(200).json({ "extra": "Primera solicitud exitosa con HTTP Client API" });
+}
