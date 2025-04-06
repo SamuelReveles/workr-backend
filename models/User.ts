@@ -3,6 +3,7 @@ import { executeQuery } from "../database/connection";
 import { isPasswordEqualToStored, hashPassword } from "../helpers/encryption";
 import { generateUUID } from "../helpers/uuid";
 import { getDateString } from "../helpers/datetime";
+import { generateJWT } from "../helpers/jwt";
 
 class User {
   /**
@@ -47,32 +48,31 @@ class User {
   }
 
   /**
-   * Valida las credenciales de un intento de login y devuelve el HTTP response status
-   * apropiado para representar el resultado.
+   * Valida las credenciales de un intento de login para autenticar a un usuario.
    * @param email Correo ingresado identificando al usuario.
    * @param password Contraseña ingresada, usada para autenticación.
-   * @returns 200 si se validan correctamente las credenciales,
-   * 403 si se revisan las credenciales y los datos no coinciden,
-   * 500 si no se logran validar las credenciales.
+   * @returns Una promise que se resuelve con un JWT del usuario si se autentica correctamente,
+   * o que se rechaza de otro modo.
    */
-  public static async validateCredentials(email: string, password: string) {
-    const query = "SELECT hashed_password FROM Users WHERE email = ?";
+  public static async validateCredentials(email: string, password: string): Promise<string> {
+    const query = "SELECT id, hashed_password FROM Users WHERE email = ?";
     const parameters = [email];
     
-    try {
-      const results: RowDataPacket[] = await executeQuery(query, parameters);
+    const results: RowDataPacket[] = await executeQuery(query, parameters);
 
-      // Se indica un login incorrecto si el correo no se encuentra.
-      if (results.length == 0) {
-        return 403;
-      }
-
-      // Dependiendo de la comparativa de contraseña, se determina el estatus del login.
-      const storedPassword = results[0]["hashed_password"];
-      return isPasswordEqualToStored(password, storedPassword) ? 200 : 403;
+    // Se indica un login incorrecto si el correo no se encuentra.
+    if (results.length == 0) {
+      return Promise.reject();
     }
-    catch(e) {
-      return 500;
+
+    // Dependiendo de la comparativa de contraseña, se devuelve o no el JWT del usuario.
+    const storedPassword = results[0]["hashed_password"];
+    if (isPasswordEqualToStored(password, storedPassword)) {
+      const jwt = generateJWT(results[0]["id"]);
+      return Promise.resolve(jwt);
+    }
+    else {
+      return Promise.reject();
     }
   }
 }
