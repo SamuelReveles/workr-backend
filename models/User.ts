@@ -1,34 +1,47 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { executeQuery } from "../database/connection";
 import { isPasswordEqualToStored, hashPassword } from "../helpers/encryption";
+import { generateUUID } from "../helpers/uuid";
+import { getDateString } from "../helpers/datetime";
 
 class User {
-  constructor(
-    public name: String,
-    public id: String,
-    public age: Number,
-    public color: String,
-  ) {}
-  
   /**
    * Crea un usuario en la BD con los datos indicados
    * @param email Correo del usuario.
-   * @param password Contraseña del usuario (a hashear para almacenar de forma segura).
-   * @returns Una promesa que resuelve a True si se creó correctamente el usuario, o False de otro modo.
+   * @param password Contraseña del usuario
+   * (a hashear para almacenar de forma segura).
+   * @returns Una promesa que resuelve a True si se creó
+   * correctamente el usuario, o False de otro modo.
    */
-  public static async create(email: string, password: string): Promise<boolean> {
+  public static async create(
+    fullName: string,
+    email: string,
+    password: string,
+    country: string
+  ): Promise<void> {
+    const id = generateUUID();
     const hashedPassword = hashPassword(password);
+    const emptyProfilePicture = "";
+    const emptyDescription = "";
+    const currentDate = getDateString();
     
-    const query = "INSERT INTO Users(email, hashed_password) VALUES(?, ?)";
-    const parameters = [email, hashedPassword];
+    const query = "INSERT INTO Users"
+      + "(id, full_name, email, hashed_password, profile_picture,"
+      + " description, country, creation_date, last_update_date)"
+      + " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    const parameters = [
+      id,
+      fullName,
+      email,
+      hashedPassword,
+      emptyProfilePicture,
+      emptyDescription,
+      country,
+      currentDate,
+      currentDate
+    ];
     
-    try {
-      await executeQuery(query, parameters);
-      return true;
-    }
-    catch (e) {
-      return false;
-    }
+    await executeQuery(query, parameters);
   }
 
   /**

@@ -13,17 +13,14 @@ function init() {
 * @param user Usuario autenticado.
 * @returns Token generado para almacenamiento en el cliente.
 */
-export function generateJWT(user: User) {
+export function generateJWT(userId: string) {
   // Inicializa la clave privada usada en JWT si aún no se ha obtenido.
   if(!secretKey) {
       init();
   }
 
   // Datos del usuario a incluir en el token.
-  const payload = {
-      userId: user.id,
-      userName: user.name,
-  };
+  const payload = { userId };
   
   // Configuración del token, por ejemplo su expiración.
   const options: SignOptions = {
