@@ -9,8 +9,8 @@ function init() {
 }
 
 /**
-* Crea un Json Web Token para un usuario especificado.
-* @param user Usuario autenticado.
+* Crea un Json Web Token para un usuario identificado.
+* @param userId Id del usuario.
 * @returns Token generado para almacenamiento en el cliente.
 */
 export function generateJWT(userId: string) {

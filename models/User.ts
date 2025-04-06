@@ -7,11 +7,13 @@ import { getDateString } from "../helpers/datetime";
 class User {
   /**
    * Crea un usuario en la BD con los datos indicados
+   * @param fullName Nombre completo del usuario.
    * @param email Correo del usuario.
    * @param password Contraseña del usuario
    * (a hashear para almacenar de forma segura).
-   * @returns Una promesa que resuelve a True si se creó
-   * correctamente el usuario, o False de otro modo.
+   * @param country País del usuario.
+   * @returns Una promise que se resuelve si el
+   * usuario se registra correctamente.
    */
   public static async create(
     fullName: string,
