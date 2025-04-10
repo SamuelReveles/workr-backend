@@ -12,6 +12,7 @@ const init = () => {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      port: Number(process.env.PORT),
     });
 
     console.log(`${subBaselog} Connection success`);
@@ -51,3 +52,16 @@ export const executeQuery = (query, params) : Promise<any> => {
   }
 };
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+// Cierre de las conexiones a BD cuando se interrumpe el proceso del server.
+process.on("SIGINT", async() => {
+  console.log("Cerrando conexiones MySQL");
+  if (pool) {
+    await pool.end();
+    console.log("Conexiones cerradas, terminando proceso");
+  }
+  else {
+    console.log("No se detectaron conexiones, terminando proceso");
+  }
+  process.exit(0);
+});

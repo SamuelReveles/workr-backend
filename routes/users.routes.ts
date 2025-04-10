@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { pong } from "../controllers/users.controller";
+import { registerUser, validateLogin } from "../controllers/users.controller";
 
 const router: Router = Router();
 
-router.get('/ping', pong);
+router.post("/register", registerUser);
+router.post("/login", validateLogin);
 
 export default router;
