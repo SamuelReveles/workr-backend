@@ -8,13 +8,6 @@ import User from "../models/User";
  */
 export const registerUser = async (req, res) => {
     const { fullName, email, password, country } = req.body;
-    const params = [ fullName, email, password, country ];
-
-    for (const p of params) {
-        if(p == null || p === "") {
-            return res.sendStatus(400);
-        }
-    }
 
     try {
         await User.create(fullName, email, password, country);
@@ -34,12 +27,6 @@ export const registerUser = async (req, res) => {
  */
 export const validateLogin = async (req, res) => {
     const { email, password } = req.body;
-    const params = [ email, password ];
-    for (const p of params) {
-        if (p == null || p === "") {
-            return res.sendStatus(400);
-        }
-    }
 
     try {
         return await User.validateCredentials(email, password)

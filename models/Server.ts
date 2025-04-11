@@ -30,7 +30,7 @@ class Server {
                 origin: [
                     'http://localhost', 
                     'http://localhost:3000', 
-                    process.env.JOPAKA_URL || ''
+                    ''
                 ], 
                 credentials: true 
             }
@@ -56,7 +56,7 @@ class Server {
             tempFileDir: '/tmp/'
         }));
     }
-
+    
     private routes(): void {
         // Routes
         this.app.use(this.usersPath, userRouter);
