@@ -30,7 +30,7 @@ class Server {
                 origin: [
                     'http://localhost', 
                     'http://localhost:3000', 
-                    process.env.JOPAKA_URL || ''
+                    ''
                 ], 
                 credentials: true 
             }
@@ -57,7 +57,7 @@ class Server {
         }));
         this.app.use(express.static(`${__dirname}/../public/`))
     }
-
+    
     private routes(): void {
         // Routes
         this.app.use(this.usersPath, userRouter);
