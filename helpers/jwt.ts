@@ -33,26 +33,31 @@ export function generateJWT(userId: string) {
 }
 
 /**
-* Verifica un token identificador de un usuario.
-* @param token Token a verificar.
-* @returns Payload del token verificado en caso de ser válido,
-* o null en caso de ser inválido.
+* Middleware para verificar el JWT de una solicitud,
+* si es válido incluye el parámetro userId a la request con
+* el id obtenido del JWT.
 */
-export function verifyJWT(token: string) {
+export function verifyJWT(req, res, next) {
   // Inicializa la clave privada usada en JWT si aún no se ha obtenido.
   if(!secretKey) {
       init();
   }
 
+  const token = req.header("Authorization");
+  if (!token) {
+    return res.status(401).json({ error: "Access denied" });
+  }
+
   // Se intenta decodificar el token con la clave privada y se retorna
   // su payload en caso de ser validado.
   try {
-      const decoded = JWT.verify(token, secretKey);
-      return decoded;
+      const { userId } = JWT.verify(token, secretKey) as { userId: string };
+      req.userId = userId;
+      next();
   }
   // Si el token es inválido se atrapa su error y se devuelve null.
   catch (error) {
-      console.error("JWT verification failed:\n", error.message)
+      res.status(401).json({ error: "Invalid token" });
       return null;
   }
 }
