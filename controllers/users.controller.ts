@@ -1,4 +1,5 @@
 import User from "../models/User";
+import UserProfile from "../models/UserProfile";
 
 /**
  * Registra un nuevo usuario con los parámetros indicados en body.
@@ -47,6 +48,22 @@ export const validateLogin = async (req, res) => {
             .catch(_ => res.sendStatus(401));
     }
     catch(e) {
+        return res.sendStatus(500);
+    }
+}
+
+/**
+ * Actualiza el perfil de un usuario con los parámetros provistos
+ * en la solicitud.
+ * @returns HTTP 200 si el perfil se actualizó correctamente,
+ * HTTP 500 si ocurrió un error al procesar la request.
+ */
+export const updateUserProfile = async (req, res) => {
+    try {
+        await UserProfile.updateProfile(req.userId, req.files.profile_picture, req.body);
+        return res.sendStatus(200);
+    }
+    catch (e) {
         return res.sendStatus(500);
     }
 }

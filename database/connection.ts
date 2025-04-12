@@ -96,6 +96,7 @@ export const executeTransaction = async (parameterizedQueries: ParameterizedQuer
   }
   catch (err) {
     await rollback();
+    console.log(`${subBaselog} transaction rolled back`);
     console.error(`${subBaselog} ❌ ERROR: ${err}`);
     throw new Error('Failed to execute MySQL transaction');
   }
