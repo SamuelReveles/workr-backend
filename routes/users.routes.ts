@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { registerUser, updateUserProfile, validateLogin } from "../controllers/users.controller";
 import { login, register } from "../middlewares/users";
-import { verifyJWT } from "../helpers/jwt";
+import { verifyJWT } from "../middlewares/jwtAuth";
 
 const router: Router = Router();
 
