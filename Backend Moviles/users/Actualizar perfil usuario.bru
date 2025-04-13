@@ -1,0 +1,61 @@
+meta {
+  name: Actualizar perfil usuario
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/users/update_profile
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  profile_picture: @file()
+  description: Test description
+  contactLinks: '''
+    [
+      {
+        "platform": "platformA",
+        "link": "link@platformA"
+      },
+      {
+        "platform": "platformB",
+        "link": "link@platformB"
+      },
+      {
+        "platform": "platformC",
+        "link": "link@platformC"
+      }
+    ]
+  '''
+  experience: '''
+    [
+      {
+        "position": "Senior test position",
+        "company": "CompanyABC",
+        "startDate": "2025-01-01",
+        "endDate": "2025-02-02",
+        "description": "Activities description"
+      }
+    ]
+  '''
+  skills: '''
+    [
+      "Awesome skill 1",
+      "Awesome skill 2",
+      "Awesome skill 3"
+    ]
+  '''
+  education: '''
+    [
+      {
+        "title": "Course title test",
+        "organization": "Academy organization",
+        "startDate": "2025-01-01",
+        "endDate": "2025-02-02",
+        "description": "Learning activities description"
+      }
+    ]
+  '''
+}
