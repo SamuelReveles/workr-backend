@@ -5,6 +5,7 @@ import ParameterizedQuery from "../database/ParameterizedQuery";
 import { existsSync, rmSync } from "fs";
 import { RowDataPacket } from "mysql2";
 import { resolve } from "path";
+import { getDateString } from "../helpers/datetime";
 
 class UserProfile {
   /**
@@ -116,8 +117,8 @@ class UserProfile {
 
     // Query para datos directos de usuario.
     parameterizedQueries.push(new ParameterizedQuery(
-      "UPDATE Users SET profile_picture = ?, description = ? WHERE id = ?",
-      [ newProfilePictureId, body.description, userId ]
+      "UPDATE Users SET profile_picture = ?, description = ?, last_update_date = ? WHERE id = ?",
+      [ newProfilePictureId, body.description, getDateString(), userId ]
     ));
     
     // Queries para enlaces de contacto.
