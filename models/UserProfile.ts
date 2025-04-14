@@ -3,6 +3,7 @@ import { executeQuery, executeTransaction } from "../database/connection";
 import { generateUUID } from "../helpers/uuid";
 import ParameterizedQuery from "../database/ParameterizedQuery";
 import { existsSync, rmSync } from "fs";
+import { RowDataPacket } from "mysql2";
 import { resolve } from "path";
 
 class UserProfile {
@@ -43,6 +44,37 @@ class UserProfile {
       this.deleteProfilePictureFile(newProfilePictureId);
       throw e;
     }
+  }
+
+  /**
+   * Obtiene la información de perfil del usuario referenciado.
+   * @param userId Id del usuario cuyo perfil se obtendrá.
+   * @returns Conjunto de información de perfil si existe, null de otro modo.
+   */
+  public static async getProfile(userId: string) {
+    // Información que presenta al usuario brevemente.
+    const presentationData = await this.queryProfilePresentationData(userId);
+    
+    // Si no se obtiene la información de presentación básica del usuario
+    // significa que el perfil completo no existe.
+    if (presentationData == null) {
+      return null;
+    }
+
+    // Se obtiene información de las siguientes secciones del perfil.
+    const contactLinks = await this.queryProfileRecords(userId, "User_contact_links");
+    const experience = this.formatRecordsDates(
+      await this.queryProfileRecords(userId, "Experience_records")
+    );
+    const skills = (await this.queryProfileRecords(userId, "User_skills")).map(
+      row => row["skill_name"]
+    );
+    const education = this.formatRecordsDates(
+      await this.queryProfileRecords(userId, "Education_records")
+    );
+
+    // Se devuelve un objeto que contiene toda la información del perfil.
+    return { presentationData, contactLinks, experience, skills, education };
   }
 
   /**
@@ -187,6 +219,69 @@ class UserProfile {
   private static deleteProfilePictureFile(profilePictureId: string) {
     const fileLocation = `${this.profilePicturesDirectory}/${profilePictureId}`;
     rmSync(fileLocation, { force: true });
+  }
+
+  /**
+   * Función auxiliar que obtiene la información que presenta al usuario brevemente.
+   * @param userId Id del usuario cuya información se busca.
+   * @returns Objeto con pares clave-valor de la información buscada si se encuentra el
+   * perfil, null de otro modo.
+   */
+  private static async queryProfilePresentationData(userId) {
+    const queryResults: RowDataPacket[] = await executeQuery(
+      "SELECT profile_picture, full_name, description, country FROM Users WHERE id = ?",
+      [userId]
+    );
+    
+    if (queryResults.length == 0) {
+      return null;
+    }
+    const dataRow = queryResults[0];
+
+    return { 
+      profilePicture: dataRow["profile_picture"],
+      fullName: dataRow["full_name"],
+      description: dataRow["description"],
+      country: dataRow["country"]
+    };
+  }
+
+  /**
+   * Función auxiliar que obtiene los registros de información que describen
+   * una sección del perfil.
+   * @param userId Id del usuario cuya información se busca.
+   * @param profileSection Sección del perfil a la que pertenecen los datos.
+   * @returns 
+   */
+  private static async queryProfileRecords(userId: string, profileSection: string) {
+    let query = `SELECT * FROM ${profileSection} WHERE user_id = ?`;
+    const params = [userId];
+
+    const queryResults: RowDataPacket[] = await executeQuery(query, params);
+    
+    // Se devuelven los registros después de quitarles información de identificadores.
+    return queryResults.map(resultRow => {
+      delete resultRow["id"];
+      delete resultRow["user_id"];
+      return resultRow;
+    })
+  }
+
+  /**
+   * Función auxiliar para formatear la información de fechas al formato ISO-8601.
+   * @param records Registros donde se formatearán las fechas.
+   * @returns Registros con las fechas ya formateadas.
+   */
+  private static formatRecordsDates(records: any[]) {
+    const dateSubstringLength = "AAAA-MM-DD".length;
+
+    return records.map(row => {
+      row["startDate"] = (row["start_date"] as Date).toISOString().substring(0, dateSubstringLength);
+      row["endDate"] = (row["end_date"] as Date).toISOString().substring(0, dateSubstringLength);
+      delete row["start_date"];
+      delete row["end_date"];
+      return row;
+    });
   }
 }
 

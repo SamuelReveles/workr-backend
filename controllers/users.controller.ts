@@ -56,6 +56,29 @@ export const updateUserProfile = async (req, res) => {
 }
 
 /**
+ * Obtiene la información del perfil correspondiente al usuario cuyo id
+ * se referencia en los parámetros del endpoint.
+ * @returns HTTP 200 con los datos del perfil si se encuentra,
+ * HTTP 404 si no se encuentra el perfil,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+export const getUserProfile = async (req, res) => {
+    try {
+        const profile = await UserProfile.getProfile(req.params.userId);
+        
+        if (profile == null) {
+            return res.sendStatus(404);
+        }
+        else {
+            return res.status(200).json(profile);
+        }
+    }
+    catch(err) {
+        return res.sendStatus(500);
+    }
+}
+
+/**
  * Devuelve la foto de perfil referenciada con el id en los parámetros del endpoint.
  * @returns HTTP 200 con la foto de perfil solicitada si se encuentra,
  * HTTP 404 si no se encuentra la foto de perfil solicitada,
