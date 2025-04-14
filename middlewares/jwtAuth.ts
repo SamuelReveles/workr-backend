@@ -9,10 +9,12 @@ export function verifyJWT(req, res, next) {
   // Se obtiene la llave privada para JWT's configurada en el entorno.
   const secretKey = process.env.JWT_SECRET_KEY;
 
-  const token = req.header("Authorization").substring("Bearer ".length);
-  if (!token) {
+  const tokenHeader = req.header("Authorization");
+  if (!tokenHeader) {
     return res.status(401).json({ error: "Access denied" });
   }
+
+  const token = tokenHeader.substring("Bearer ".length);
 
   // Se intenta decodificar el token con la clave privada y se retorna
   // su payload en caso de ser validado.
