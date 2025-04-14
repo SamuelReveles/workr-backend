@@ -6,6 +6,7 @@ import { existsSync, rmSync } from "fs";
 import { RowDataPacket } from "mysql2";
 import { resolve } from "path";
 import { getDateString } from "../helpers/datetime";
+import { saveNewProfilePicture } from "../helpers/profilePictures";
 
 class UserProfile {
   /**
@@ -24,7 +25,7 @@ class UserProfile {
     ))[0]["profile_picture"];
 
     // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-    const newProfilePictureId = await this.saveNewProfilePicture(profilePictureFile);
+    const newProfilePictureId = await saveNewProfilePicture(profilePictureFile, this.profilePicturesDirectory);
 
     // Se generan todas las queries que actualizan los datos del perfil de usuario
     // con el id, la referencia de foto de perfil y los argumentos provistos en body.
@@ -90,19 +91,6 @@ class UserProfile {
   }
 
   private static profilePicturesDirectory = `${__dirname}/../file_uploads/user_pfp`;
-
-  /**
-   * Guarda la foto de perfil provista en el archivo de entrada y devuelve su id para referencia.
-   * @param profilePictureFile Archivo de foto de perfil a guardar.
-   * @returns Id para referenciar la nueva foto de perfil.
-   */
-  private static async saveNewProfilePicture(profilePictureFile) {
-    const fileExtension = profilePictureFile.name.split(".").pop();
-    const imageUUID = generateUUID();
-    const newProfilePictureId = `${imageUUID}.${fileExtension}`;
-    await profilePictureFile.mv(`${this.profilePicturesDirectory}/${newProfilePictureId}`);
-    return newProfilePictureId;
-  }
 
   /**
    * Crea todas las queries necesarias para actualizar la BD con la nueva información
