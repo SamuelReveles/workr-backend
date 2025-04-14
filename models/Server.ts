@@ -55,7 +55,6 @@ class Server {
             useTempFiles: true,
             tempFileDir: `${__dirname}/../file_uploads_tmp/`
         }));
-        this.app.use(express.static(`${__dirname}/../public/`))
     }
     
     private routes(): void {

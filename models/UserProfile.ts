@@ -2,7 +2,8 @@ import { UploadedFile } from "express-fileupload";
 import { executeQuery, executeTransaction } from "../database/connection";
 import { generateUUID } from "../helpers/uuid";
 import ParameterizedQuery from "../database/ParameterizedQuery";
-import { rmSync } from "fs";
+import { existsSync, rmSync } from "fs";
+import { resolve } from "path";
 
 class UserProfile {
   /**
@@ -44,7 +45,18 @@ class UserProfile {
     }
   }
 
-  private static profilePicturesDirectory = `${__dirname}/../public/uploaded/user_pfp`;
+  /**
+   * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
+   * @param id Identificador de la foto cuya ruta se busca.
+   * @returns Ruta absoluta para la foto de perfil si existe,
+   * null de otro modo.
+   */
+  public static getProfilePicturePath(id: string) {
+    const path = `${this.profilePicturesDirectory}/${id}`;
+    return existsSync(path) ? resolve(path) : null;
+  }
+
+  private static profilePicturesDirectory = `${__dirname}/../file_uploads/user_pfp`;
 
   /**
    * Guarda la foto de perfil provista en el archivo de entrada y devuelve su id para referencia.
