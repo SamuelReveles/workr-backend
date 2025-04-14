@@ -1,0 +1,15 @@
+meta {
+  name: Obtener foto de perfil
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/api/users/profile_picture/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 
+}
