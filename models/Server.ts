@@ -5,6 +5,7 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
 import userRouter from '../routes/users.routes';
+import companyRouter from '../routes/companies.routes';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ class Server {
     private server: http.Server;
     private io: SocketIOServer;
     private usersPath: string;
+    private companiesPath: string;
 
     constructor() {
         // Use express framework
@@ -36,6 +38,7 @@ class Server {
             }
         });
         this.usersPath = '/api/users';
+        this.companiesPath = '/api/companies';
         
         // Middlewares
         this.middlewares();
@@ -60,6 +63,7 @@ class Server {
     private routes(): void {
         // Routes
         this.app.use(this.usersPath, userRouter);
+        this.app.use(this.companiesPath, companyRouter);
         // this.app.use(this.adminPath, administradorRoutes);
     }
 
