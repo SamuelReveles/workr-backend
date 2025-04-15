@@ -1,0 +1,35 @@
+meta {
+  name: Actualizar perfil de empresa
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/companies/update_profile
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  profile_picture: @file()
+  description: Test description
+  mission: The company's mission
+  vision: The company's vision
+  address: Example st. 12345, state
+  contactLinks: '''
+    [
+      {
+        "platform": "platformA",
+        "link": "link@platformA"
+      },
+      {
+        "platform": "platformB",
+        "link": "link@platformB"
+      },
+      {
+        "platform": "platformC",
+        "link": "link@platformC"
+      }
+    ]
+  '''
+}
