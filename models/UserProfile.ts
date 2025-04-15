@@ -1,11 +1,9 @@
 import { UploadedFile } from "express-fileupload";
 import { executeQuery, executeTransaction } from "../database/connection";
 import ParameterizedQuery from "../database/ParameterizedQuery";
-import { existsSync } from "fs";
 import { RowDataPacket } from "mysql2";
-import { resolve } from "path";
 import { getDateString } from "../helpers/datetime";
-import { deleteProfilePictureFile, saveNewProfilePicture } from "../helpers/profilePictures";
+import { deleteProfilePictureFile, resolveProfilePicturePath, saveNewProfilePicture } from "../helpers/profilePictures";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 
 class UserProfile {
@@ -86,8 +84,7 @@ class UserProfile {
    * null de otro modo.
    */
   public static getProfilePicturePath(id: string) {
-    const path = `${this.profilePicturesDirectory}/${id}`;
-    return existsSync(path) ? resolve(path) : null;
+    return resolveProfilePicturePath(this.profilePicturesDirectory, id);
   }
 
   private static profilePicturesDirectory = `${__dirname}/../file_uploads/user_pfp`;
