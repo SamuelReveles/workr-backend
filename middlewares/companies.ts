@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 import { validator } from "./validator";
+import { contactLinksValidator } from "./customValidators";
 
 export const register = [
   body("adminEmail").notEmpty().isEmail().withMessage(messageFor("adminEmail")),
@@ -8,6 +9,15 @@ export const register = [
   body("commercialSector").notEmpty().isString().withMessage(messageFor("commercialSector")),
   body("employeeCount").notEmpty().isInt().withMessage(messageFor("employeeCount")),
   body("type").notEmpty().isString().withMessage(messageFor("type")),
+  validator,
+];
+
+export const updateProfile = [
+  body("description").notEmpty().isString().withMessage(messageFor("description")),
+  body("mission").notEmpty().isString().withMessage(messageFor("mission")),
+  body("vision").notEmpty().isString().withMessage(messageFor("vision")),
+  body("address").notEmpty().isString().withMessage(messageFor("address")),
+  body("contactLinks").custom(contactLinksValidator),
   validator,
 ];
 

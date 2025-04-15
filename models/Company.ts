@@ -1,9 +1,11 @@
 import { UploadedFile } from "express-fileupload";
-import { saveNewProfilePicture } from "../helpers/profilePictures";
-import { executeQuery } from "../database/connection";
+import { deleteProfilePictureFile, saveNewProfilePicture } from "../helpers/profilePictures";
+import { executeQuery, executeTransaction } from "../database/connection";
 import { generateUUID } from "../helpers/uuid";
 import { hashPassword } from "../helpers/encryption";
 import { getDateString } from "../helpers/datetime";
+import ParameterizedQuery from "../database/ParameterizedQuery";
+import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 
 class Company {
   /**
@@ -48,7 +50,84 @@ class Company {
     );
   }
 
+  /**
+   * Actualiza la información del perfil de una empresa tomando los datos
+   * recibidos en la solicitud.
+   * @param companyId Id de la empresa cuyo perfil se actualizará.
+   * @param profilePictureFile Archivo con la nueva foto de perfil de la empresa.
+   * @param body Conjunto de datos de perfil de la empresa.
+   */
+  public static async updateProfile(companyId: string, profilePictureFile: UploadedFile, body) {
+    // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
+    const oldProfilePictureId = (await executeQuery(
+      "SELECT profile_picture FROM Companies WHERE id = ?",
+      [companyId]
+    ))[0]["profile_picture"];
+
+    // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
+    const newProfilePictureId = await saveNewProfilePicture(
+      profilePictureFile, this.profilePicturesDirectory
+    );
+
+    // Se generan todas las queries para actualizar la información de perfil de la empresa.
+    const updateTransactionQueries = this.generateUpdateTransactionQueries(
+      companyId, newProfilePictureId, body
+    );
+
+    // Transacción principal de cambios.
+    try {
+      await executeTransaction(updateTransactionQueries);
+
+      // Si la transacción se completa correctamente, se borrará la imagen de perfil previa.
+      deleteProfilePictureFile(oldProfilePictureId, this.profilePicturesDirectory);
+    }
+    // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
+    catch (err) {
+      deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
+      throw err;
+    }
+  }
+
   private static profilePicturesDirectory = `${__dirname}/../file_uploads/company_pfp`;
+
+  /**
+   * Función auxiliar para generar las queries de la transacción SQL de actualización
+   * de perfil de la empresa.
+   * @param companyId Id de la empresa cuyo perfil se actualizará.
+   * @param profilePictureId Id de la imagen de perfil de la empresa.
+   * @param body Conjunto de datos de perfil de la empresa.
+   * @returns Una lista de ParameterizedQueries adecuadas para la actualización deseada.
+   */
+  private static generateUpdateTransactionQueries(companyId: string, profilePictureId: string, body) {
+    const transactionQueries: ParameterizedQuery[] = [];
+
+    transactionQueries.push(new ParameterizedQuery(
+      "UPDATE Companies SET profile_picture = ?, description = ?, mission = ?, vision = ?, address = ?, " +
+      "last_update_date = ? WHERE id = ?",
+      [
+        profilePictureId,
+        body.description,
+        body.mission,
+        body.vision,
+        body.address,
+        getDateString(),
+        companyId
+      ]
+    ));
+
+    transactionQueries.push(generateReferenceRecordsDeletionQuery(
+      "Company_contact_links", "company_id", companyId
+    ));
+
+    transactionQueries.push(generateReferenceRecordsInsertionQuery(
+      body.contactLinks,
+      "Company_contact_links",
+      companyId,
+      (r) => [r.platform, r.link]
+    ));
+
+    return transactionQueries;
+  }
 }
 
 export default Company;
