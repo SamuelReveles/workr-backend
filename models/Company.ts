@@ -6,6 +6,7 @@ import { hashPassword } from "../helpers/encryption";
 import { getDateString } from "../helpers/datetime";
 import ParameterizedQuery from "../database/ParameterizedQuery";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
+import { RowDataPacket } from "mysql2";
 
 class Company {
   /**
@@ -89,6 +90,31 @@ class Company {
   }
 
   /**
+   * Obtiene la información de perfil de la empresa referenciada.
+   * @param companyId Id de la empresa cuyo perfil se obtendrá.
+   * @returns Conjunto de información de perfil si existe, null de otro modo.
+   */
+  public static async getProfile(companyId: string) {
+    // Se busca la principal sección de información de la empresa.
+    const mainData = await this.queryProfileMainData(companyId);
+
+    // Si no se obtiene la información principal de la empresa
+    // significa que el perfil completo no existe.
+    if (mainData == null) {
+      return null;
+    }
+
+    // Se obtienen los enlaces de contacto que referencian a la empresa.
+    const contactLinks = await executeQuery(
+      "SELECT platform, link FROM Company_contact_links WHERE company_id = ?",
+      [companyId]
+    );
+
+    // Se devuelve un objeto que contiene toda la información del perfil.
+    return { ...mainData, contactLinks };
+  }
+
+  /**
    * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
    * @param id Identificador de la foto cuya ruta se busca.
    * @returns Ruta absoluta para la foto de perfil si existe,
@@ -137,6 +163,35 @@ class Company {
     ));
 
     return transactionQueries;
+  }
+
+  /**
+   * Función auxiliar que obtiene la información principal de la empresa
+   * @param companyId Id de la empresa cuya información se busca.
+   * @returns Objeto con pares clave-valor de la información buscada si se encuentra el
+   * perfil, null de otro modo.
+   */
+  private static async queryProfileMainData(companyId) {
+    const queryResults: RowDataPacket[] = await executeQuery(
+      "SELECT name, profile_picture, type, commercial_sector, employee_count, address, " +
+      "description, mission, vision FROM Companies WHERE id = ?",
+      [companyId]
+    );
+    
+    if (queryResults.length == 0) {
+      return null;
+    }
+    const dataRow = queryResults[0];
+
+    // Renombramiento de datos con identificador snake_case.
+    dataRow.profilePicture = dataRow.profile_picture;
+    delete dataRow.profile_picture;
+    dataRow.commercialSector = dataRow.commercial_sector;
+    delete dataRow.commercial_sector;
+    dataRow.employeeCount = dataRow.employee_count;
+    delete dataRow.employee_count;
+
+    return dataRow;
   }
 }
 

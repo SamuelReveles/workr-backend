@@ -31,6 +31,29 @@ export const updateCompanyProfile = async (req, res) => {
 }
 
 /**
+ * Obtiene la información del perfil correspondiente a la empresa cuyo id
+ * se referencia en los parámetros del endpoint.
+ * @returns HTTP 200 con los datos del perfil si se encuentra,
+ * HTTP 404 si no se encuentra el perfil,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+export const getCompanyProfile = async (req, res) => {
+  try {
+      const profile = await Company.getProfile(req.params.companyId);
+      
+      if (profile == null) {
+          return res.sendStatus(404);
+      }
+      else {
+          return res.status(200).json(profile);
+      }
+  }
+  catch(err) {
+      return res.sendStatus(500);
+  }
+}
+
+/**
  * Devuelve la foto de perfil referenciada con el id en los parámetros del endpoint.
  * @returns HTTP 200 con la foto de perfil solicitada si se encuentra,
  * HTTP 404 si no se encuentra la foto de perfil solicitada,
