@@ -7,6 +7,7 @@ import { RowDataPacket } from "mysql2";
 import { resolve } from "path";
 import { getDateString } from "../helpers/datetime";
 import { saveNewProfilePicture } from "../helpers/profilePictures";
+import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 
 class UserProfile {
   /**
@@ -110,8 +111,8 @@ class UserProfile {
     ));
     
     // Queries para enlaces de contacto.
-    parameterizedQueries.push(this.generateDeletionQuery("User_contact_links", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_contact_links", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.contactLinks,
       "User_contact_links",
       userId,
@@ -119,8 +120,8 @@ class UserProfile {
     ));
 
     // Queries para registros de experiencia.
-    parameterizedQueries.push(this.generateDeletionQuery("Experience_records", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Experience_records", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.experience,
       "Experience_records",
       userId,
@@ -128,8 +129,8 @@ class UserProfile {
     ));
 
     // Queries para habilidades.
-    parameterizedQueries.push(this.generateDeletionQuery("User_skills", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_skills", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.skills,
       "User_skills",
       userId,
@@ -137,8 +138,8 @@ class UserProfile {
     ));
 
     // Queries para registros de educación.
-    parameterizedQueries.push(this.generateDeletionQuery("Education_records", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Education_records", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.education,
       "Education_records",
       userId,
@@ -146,59 +147,6 @@ class UserProfile {
     ));
 
     return parameterizedQueries;
-  }
-
-  /**
-   * Método auxiliar para crear una query parametrizada enfocada a
-   * borrar los registros de una tabla que referencien a cierto usuario.
-   * @param table Tabla donde ser hará el borrado.
-   * @param userId Id del usuario referenciado.
-   * @returns Una ParameterizedQuery para el borrado deseado.
-   */
-  private static generateDeletionQuery(table, userId) {
-    return new ParameterizedQuery(
-      `DELETE FROM ${table} WHERE user_id = ?`,
-      [ userId ]
-    );
-  }
-
-  /**
-   * Método auxiliar para generar una ParameterizedQuery adecuada para la inserción de
-   * los datos contenidos en el JSON de entrada, para la tabla de BD indicada,
-   * con el usuario referenciado y tomando las propiedades que se configuren por cada registro.
-   * @param recordsJSONText Texto JSON que contiene todos los registros a insertar.
-   * @param table Tabla de la BD a la cual se hará la inserción.
-   * @param userId Id del usuario referenciado en los registros.
-   * @param getRecordProperties Callback que produzca una lista con las propiedades a incluir
-   * por cada registro en el orden de columnas de la BD.
-   * @returns Una ParameterizedQuery para la inserción de datos deseada.
-   */
-  private static generateRecordsInsertionQuery(recordsJSONText: string, table: string, userId: string, getRecordProperties: (listItem) => any[]) {
-    const records = JSON.parse(recordsJSONText);
-    let insertQuery = `INSERT INTO ${table} VALUES`;
-    const insertParams = [];
-
-    // Cada entrada de lista en el JSON se convertirá en un registro a insertar.
-    for (const r of records) {
-      // El primer parámetro de cada registro es un ID único.
-      insertQuery += " (?, ";
-      insertParams.push(generateUUID());
-
-      // Por cada propiedad listada con el callback se agrega
-      // un placeholder a la query de inserción y un parámetro a la lista.
-      const properties = getRecordProperties(r);
-      for (const p of properties) {
-        insertQuery += "?, ";
-        insertParams.push(p);
-      }
-
-      // El último parámetro de cada registro es la referencia al usuario involucrado.
-      insertQuery += "?),";
-      insertParams.push(userId);
-    }
-
-    insertQuery = insertQuery.substring(0, insertQuery.length - 1);
-    return new ParameterizedQuery(insertQuery, insertParams);
   }
 
   /**
