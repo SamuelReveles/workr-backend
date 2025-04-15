@@ -1,5 +1,5 @@
 import { UploadedFile } from "express-fileupload";
-import { deleteProfilePictureFile, saveNewProfilePicture } from "../helpers/profilePictures";
+import { deleteProfilePictureFile, resolveProfilePicturePath, saveNewProfilePicture } from "../helpers/profilePictures";
 import { executeQuery, executeTransaction } from "../database/connection";
 import { generateUUID } from "../helpers/uuid";
 import { hashPassword } from "../helpers/encryption";
@@ -86,6 +86,16 @@ class Company {
       deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
       throw err;
     }
+  }
+
+  /**
+   * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
+   * @param id Identificador de la foto cuya ruta se busca.
+   * @returns Ruta absoluta para la foto de perfil si existe,
+   * null de otro modo.
+   */
+  public static getProfilePicturePath(id: string) {
+    return resolveProfilePicturePath(this.profilePicturesDirectory, id);
   }
 
   private static profilePicturesDirectory = `${__dirname}/../file_uploads/company_pfp`;

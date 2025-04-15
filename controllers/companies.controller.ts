@@ -29,3 +29,25 @@ export const updateCompanyProfile = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Devuelve la foto de perfil referenciada con el id en los parámetros del endpoint.
+ * @returns HTTP 200 con la foto de perfil solicitada si se encuentra,
+ * HTTP 404 si no se encuentra la foto de perfil solicitada,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+export const getProfilePicture = (req, res) => {
+  try {
+      const profilePicturePath = Company.getProfilePicturePath(req.params.id);
+
+      if (profilePicturePath == null) {
+          return res.sendStatus(404);
+      }
+      else {
+          return res.status(200).sendFile(profilePicturePath);
+      }
+  }
+  catch (err) {
+      return res.sendStatus(500);
+  }
+}
