@@ -31,7 +31,7 @@ class Company {
 
     // Se registra la empresa en la BD con todos los campos obtenidos.
     await executeQuery(
-      "INSERT INTO companies VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO Companies VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         id,
         body.name,

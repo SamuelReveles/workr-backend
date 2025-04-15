@@ -26,7 +26,7 @@ class Auth {
     else {
       // Si el email no coincide con un usuario, se intenta un login de empresa.
       queryResults = await executeQuery(
-        "SELECT id, hashed_admin_password FROM companies WHERE admin_email = ?",
+        "SELECT id, hashed_admin_password FROM Companies WHERE admin_email = ?",
         [email]
       );
 
