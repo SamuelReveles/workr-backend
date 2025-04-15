@@ -4,6 +4,7 @@ import fileUpload from 'express-fileupload';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
+import authRouter from '../routes/auth.routes';
 import userRouter from '../routes/users.routes';
 import companyRouter from '../routes/companies.routes';
 
@@ -14,6 +15,7 @@ class Server {
     private port: string;
     private server: http.Server;
     private io: SocketIOServer;
+    private authPath: string;
     private usersPath: string;
     private companiesPath: string;
 
@@ -37,6 +39,7 @@ class Server {
                 credentials: true 
             }
         });
+        this.authPath = '/api/auth';
         this.usersPath = '/api/users';
         this.companiesPath = '/api/companies';
         
@@ -62,6 +65,7 @@ class Server {
     
     private routes(): void {
         // Routes
+        this.app.use(this.authPath, authRouter);
         this.app.use(this.usersPath, userRouter);
         this.app.use(this.companiesPath, companyRouter);
         // this.app.use(this.adminPath, administradorRoutes);

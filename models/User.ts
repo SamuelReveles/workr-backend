@@ -1,9 +1,7 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { executeQuery } from "../database/connection";
-import { isPasswordEqualToStored, hashPassword } from "../helpers/encryption";
+import { hashPassword } from "../helpers/encryption";
 import { generateUUID } from "../helpers/uuid";
 import { getDateString } from "../helpers/datetime";
-import { generateJWT } from "../helpers/jwt";
 
 class User {
   /**
@@ -45,35 +43,6 @@ class User {
     ];
     
     await executeQuery(query, parameters);
-  }
-
-  /**
-   * Valida las credenciales de un intento de login para autenticar a un usuario.
-   * @param email Correo ingresado identificando al usuario.
-   * @param password Contraseña ingresada, usada para autenticación.
-   * @returns Una promise que se resuelve con un JWT del usuario si se autentica correctamente,
-   * o que se rechaza de otro modo.
-   */
-  public static async validateCredentials(email: string, password: string): Promise<string> {
-    const query = "SELECT id, hashed_password FROM Users WHERE email = ?";
-    const parameters = [email];
-    
-    const results: RowDataPacket[] = await executeQuery(query, parameters);
-
-    // Se indica un login incorrecto si el correo no se encuentra.
-    if (results.length == 0) {
-      return Promise.reject();
-    }
-
-    // Dependiendo de la comparativa de contraseña, se devuelve o no el JWT del usuario.
-    const storedPassword = results[0]["hashed_password"];
-    if (isPasswordEqualToStored(password, storedPassword)) {
-      const jwt = generateJWT(results[0]["id"]);
-      return Promise.resolve(jwt);
-    }
-    else {
-      return Promise.reject();
-    }
   }
 }
 

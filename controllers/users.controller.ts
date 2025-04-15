@@ -20,26 +20,6 @@ export const registerUser = async (req, res) => {
 }
 
 /**
- * Verifica las credenciales de acceso de un usuario indicadas en body
- * @returns HTTP 200 con un JWT de autenticación si las credenciales son correctas,
- * HTTP 400 si los parámetros son incorrectos,
- * HTTP 401 si las credenciales son incorrectas al autenticar,
- * HTTP 500 si ocurre un error al procesar la request.
- */
-export const validateLogin = async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        return await User.validateCredentials(email, password)
-            .then(jwt => res.status(200).json({ jwt }))
-            .catch(_ => res.sendStatus(401));
-    }
-    catch(e) {
-        return res.sendStatus(500);
-    }
-}
-
-/**
  * Actualiza el perfil de un usuario con los parámetros provistos
  * en la solicitud.
  * @returns HTTP 200 si el perfil se actualizó correctamente,
