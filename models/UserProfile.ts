@@ -1,12 +1,11 @@
 import { UploadedFile } from "express-fileupload";
 import { executeQuery, executeTransaction } from "../database/connection";
-import { generateUUID } from "../helpers/uuid";
 import ParameterizedQuery from "../database/ParameterizedQuery";
-import { existsSync, rmSync } from "fs";
+import { existsSync } from "fs";
 import { RowDataPacket } from "mysql2";
 import { resolve } from "path";
 import { getDateString } from "../helpers/datetime";
-import { saveNewProfilePicture } from "../helpers/profilePictures";
+import { deleteProfilePictureFile, saveNewProfilePicture } from "../helpers/profilePictures";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 
 class UserProfile {
@@ -39,12 +38,12 @@ class UserProfile {
       // Si la transacción se completa correctamente, se borrará la
       // imagen de perfil previa (si existía).
       if (oldProfilePictureId !== "") {
-        this.deleteProfilePictureFile(oldProfilePictureId);
+        deleteProfilePictureFile(oldProfilePictureId, this.profilePicturesDirectory);
       }
     }
     // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
     catch (e) {
-      this.deleteProfilePictureFile(newProfilePictureId);
+      deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
       throw e;
     }
   }
@@ -147,15 +146,6 @@ class UserProfile {
     ));
 
     return parameterizedQueries;
-  }
-
-  /**
-   * Borra el archivo especificado de foto de perfil de un usuario.
-   * @param profilePictureId identificador de la foto de perfil a borrar.
-   */
-  private static deleteProfilePictureFile(profilePictureId: string) {
-    const fileLocation = `${this.profilePicturesDirectory}/${profilePictureId}`;
-    rmSync(fileLocation, { force: true });
   }
 
   /**
