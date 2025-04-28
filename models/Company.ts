@@ -20,35 +20,22 @@ class Company {
       profilePictureFile, this.profilePicturesDirectory
     );
 
-    // Se obtienen valores de declaración en tiempo de creación.
-    const id = generateUUID();
-    const hashedPassword = hashPassword(body.adminPassword);
-    const emptyAddress = "";
-    const emptyDescription = "";
-    const emptyMission = "";
-    const emptyVision = "";
-    const currentDate = getDateString();
+    // Se define el nuevo registro a insertar en la BD.
+    const newCompanyData = {
+      id: generateUUID(),
+      name: body.name,
+      admin_email: body.adminEmail,
+      hashed_admin_password: hashPassword(body.adminPassword),
+      profile_picture: profilePictureId,
+      type: body.type,
+      commercial_sector: body.commercialSector,
+      employee_count: body.employeeCount,
+      creation_date: getDateString(),
+      last_update_date: getDateString(),
+    }
 
-    // Se registra la empresa en la BD con todos los campos obtenidos.
-    await executeQuery(
-      "INSERT INTO Companies VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        id,
-        body.name,
-        body.adminEmail,
-        hashedPassword,
-        profilePictureId,
-        body.type,
-        body.commercialSector,
-        body.employeeCount,
-        emptyAddress,
-        emptyDescription,
-        emptyMission,
-        emptyVision,
-        currentDate,
-        currentDate
-      ]
-    );
+    // Se registra la empresa en la BD con su información definida.
+    await executeQuery("INSERT INTO Companies SET ?", newCompanyData);
   }
 
   /**
@@ -129,7 +116,7 @@ class Company {
   /**
    * Función auxiliar para generar las queries de la transacción SQL de actualización
    * de perfil de la empresa.
-   * @param companyId Id de la empresa cuyo perfil se actualizará.
+   * @param companyId Id de la empresa cuyo perfil se actualizará
    * @param profilePictureId Id de la imagen de perfil de la empresa.
    * @param body Conjunto de datos de perfil de la empresa.
    * @returns Una lista de ParameterizedQueries adecuadas para la actualización deseada.
@@ -138,16 +125,17 @@ class Company {
     const transactionQueries: ParameterizedQuery[] = [];
 
     transactionQueries.push(new ParameterizedQuery(
-      "UPDATE Companies SET profile_picture = ?, description = ?, mission = ?, vision = ?, address = ?, " +
-      "last_update_date = ? WHERE id = ?",
+      "UPDATE Companies SET ? WHERE id = ?",
       [
-        profilePictureId,
-        body.description,
-        body.mission,
-        body.vision,
-        body.address,
-        getDateString(),
-        companyId
+        {
+          profile_picture: profilePictureId,
+          description: body.description,
+          mission: body.mission,
+          vision: body.vision,
+          address: body.address,
+          last_update_date: getDateString(),
+        },
+        companyId,
       ]
     ));
 
