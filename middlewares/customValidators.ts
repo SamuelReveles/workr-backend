@@ -1,10 +1,8 @@
 export function contactLinksValidator(value) {
   const field = "contactLinks";
+  const arrayData = validateJSONArray(value, field);
 
-  const data = validateJSONFormat(value, field);
-  validateArrayType(data, field);
-
-  data.forEach((item, index) => {
+  arrayData.forEach((item, index) => {
     if (typeof item.platform != "string")
       throwItemFieldError(field, index, "platform");
     if (typeof item.link != "string")
@@ -16,12 +14,10 @@ export function contactLinksValidator(value) {
 
 export function experienceValidator(value) {
   const field = "experience";
-  const data = validateJSONFormat(value, field);
-  validateArrayType(data, field);
-
+  const arrayData = validateJSONArray(value, field);
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-  data.forEach((item, index) => {
+  arrayData.forEach((item, index) => {
     if (typeof item.position != "string")
       throwItemFieldError(field, index, "position");
     if (typeof item.company != "string")
@@ -38,11 +34,9 @@ export function experienceValidator(value) {
 }
 
 export function skillsValidator(value) {
-  const field = "skills";
-  const data = validateJSONFormat(value, field);
-  validateArrayType(data, field);
+  const arrayData = validateJSONArray(value, "skills");
 
-  data.forEach((item, index) => {
+  arrayData.forEach((item, index) => {
     if (typeof item != "string")
       throw new Error(`La habilidad en la posición ${index} no es de tipo string`);
   });
@@ -52,12 +46,10 @@ export function skillsValidator(value) {
 
 export function educationValidator(value) {
   const field = "education";
-  const data = validateJSONFormat(value, field);
-  validateArrayType(data, field);
-
+  const arrayData = validateJSONArray(value, field);
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-  data.forEach((item, index) => {
+  arrayData.forEach((item, index) => {
     if (typeof item.title != "string")
       throwItemFieldError(field, index, "title");
     if (typeof item.organization != "string")
@@ -74,29 +66,30 @@ export function educationValidator(value) {
 }
 
 /**
- * Interpreta el JSON en la cadena de entrada en caso de ser válido
- * o lanza un error en caso de ser incorrecto.
- * @param value Valor a probar como formato JSON.
- * @param field Campo que está siendo validado.
- */
-function validateJSONFormat(value: string, field: string) {
-  try {
-    return JSON.parse(value);
-  }
-  catch(err) {
-    throw new Error(`Se debe pasar un arreglo JSON para el campo '${field}'`);
-  }
-}
-
-/**
- * Verifica que el tipo de dato de la entrada sea un array,
- * y lanza un error en caso de que no sea así.
+ * Verifica que el tipo de dato de la entrada sea un array o la representación
+ * en JSON de un array para parsearlo, lanza un error si no se detecta un array.
  * @param data Datos a probar como arreglo.
- * @param field Campo que está siendo validado.
+ * @param fieldName Nombre del campo que está siendo validado.
+ * @returns Arreglo ya validado y parseado de ser necesario.
+ * @throws Un error personalizado indicando tipo incorrecto en el campo involucrado.
  */
-function validateArrayType(data, field: string) {
-  if (!Array.isArray(data)) {
-    throw new Error(`Se debe pasar un arreglo JSON para el campo '${field}'`);
+function validateJSONArray(data: any, fieldName: string) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  else {
+    try {
+      const arrayData = JSON.parse(data);
+      if (Array.isArray(arrayData)) {
+        return arrayData;
+      }
+      else {
+        throw new Error();
+      }
+    }
+    catch(err) {
+      throw new Error(`Se debe pasar un arreglo JSON para el campo '${fieldName}'`);
+    }
   }
 }
 
