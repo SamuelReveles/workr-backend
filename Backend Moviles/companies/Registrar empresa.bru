@@ -1,0 +1,21 @@
+meta {
+  name: Registrar empresa
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/companies/register
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  profile_picture: @file()
+  name: Company ABC
+  adminEmail: admin.companyabc@example.com
+  adminPassword: 
+  commercialSector: Education
+  employeeCount: 10
+  type: Commercial
+}

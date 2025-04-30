@@ -1,9 +1,8 @@
 import JWT from "jsonwebtoken";
 
 /**
-* Middleware para verificar el JWT de una solicitud,
-* si es válido incluye el parámetro userId a la request con
-* el id obtenido del JWT.
+* Middleware para verificar el JWT de una solicitud, si es válido
+* incluye el parámetro apropiado de id según el tipo de token a la request.
 */
 export function verifyJWT(req, res, next) {
   // Se obtiene la llave privada para JWT's configurada en el entorno.
@@ -16,16 +15,22 @@ export function verifyJWT(req, res, next) {
 
   const token = tokenHeader.substring("Bearer ".length);
 
-  // Se intenta decodificar el token con la clave privada y se retorna
-  // su payload en caso de ser validado.
+  // Se intenta decodificar el token con la clave privada y usa su payload
+  // para configurar el parámetro adecuado de id en la solicitud.
   try {
-      const { userId } = JWT.verify(token, secretKey) as { userId: string };
-      req.userId = userId;
-      next();
+    const { id, type } = JWT.verify(token, secretKey) as { id: string, type: string };
+
+    if (type == "user") {
+      req.userId = id;
+    }
+    else {
+      req.companyId = id;
+    }
+    
+    next();
   }
-  // Si el token es inválido se atrapa su error y se devuelve null.
+  // Si el token es inválido se atrapa su error y se devuelve un error 401.
   catch (error) {
-      res.status(401).json({ error: "Invalid token" });
-      return null;
+    return res.status(401).json({ error: "Invalid token" });
   }
 }

@@ -1,11 +1,10 @@
 import { UploadedFile } from "express-fileupload";
 import { executeQuery, executeTransaction } from "../database/connection";
-import { generateUUID } from "../helpers/uuid";
 import ParameterizedQuery from "../database/ParameterizedQuery";
-import { existsSync, rmSync } from "fs";
 import { RowDataPacket } from "mysql2";
-import { resolve } from "path";
 import { getDateString } from "../helpers/datetime";
+import { deleteProfilePictureFile, resolveProfilePicturePath, saveNewProfilePicture } from "../helpers/profilePictures";
+import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 
 class UserProfile {
   /**
@@ -24,7 +23,7 @@ class UserProfile {
     ))[0]["profile_picture"];
 
     // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-    const newProfilePictureId = await this.saveNewProfilePicture(profilePictureFile);
+    const newProfilePictureId = await saveNewProfilePicture(profilePictureFile, this.profilePicturesDirectory);
 
     // Se generan todas las queries que actualizan los datos del perfil de usuario
     // con el id, la referencia de foto de perfil y los argumentos provistos en body.
@@ -37,12 +36,12 @@ class UserProfile {
       // Si la transacción se completa correctamente, se borrará la
       // imagen de perfil previa (si existía).
       if (oldProfilePictureId !== "") {
-        this.deleteProfilePictureFile(oldProfilePictureId);
+        deleteProfilePictureFile(oldProfilePictureId, this.profilePicturesDirectory);
       }
     }
     // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
     catch (e) {
-      this.deleteProfilePictureFile(newProfilePictureId);
+      deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
       throw e;
     }
   }
@@ -85,24 +84,10 @@ class UserProfile {
    * null de otro modo.
    */
   public static getProfilePicturePath(id: string) {
-    const path = `${this.profilePicturesDirectory}/${id}`;
-    return existsSync(path) ? resolve(path) : null;
+    return resolveProfilePicturePath(this.profilePicturesDirectory, id);
   }
 
   private static profilePicturesDirectory = `${__dirname}/../file_uploads/user_pfp`;
-
-  /**
-   * Guarda la foto de perfil provista en el archivo de entrada y devuelve su id para referencia.
-   * @param profilePictureFile Archivo de foto de perfil a guardar.
-   * @returns Id para referenciar la nueva foto de perfil.
-   */
-  private static async saveNewProfilePicture(profilePictureFile) {
-    const fileExtension = profilePictureFile.name.split(".").pop();
-    const imageUUID = generateUUID();
-    const newProfilePictureId = `${imageUUID}.${fileExtension}`;
-    await profilePictureFile.mv(`${this.profilePicturesDirectory}/${newProfilePictureId}`);
-    return newProfilePictureId;
-  }
 
   /**
    * Crea todas las queries necesarias para actualizar la BD con la nueva información
@@ -122,8 +107,8 @@ class UserProfile {
     ));
     
     // Queries para enlaces de contacto.
-    parameterizedQueries.push(this.generateDeletionQuery("User_contact_links", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_contact_links", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.contactLinks,
       "User_contact_links",
       userId,
@@ -131,8 +116,8 @@ class UserProfile {
     ));
 
     // Queries para registros de experiencia.
-    parameterizedQueries.push(this.generateDeletionQuery("Experience_records", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Experience_records", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.experience,
       "Experience_records",
       userId,
@@ -140,8 +125,8 @@ class UserProfile {
     ));
 
     // Queries para habilidades.
-    parameterizedQueries.push(this.generateDeletionQuery("User_skills", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_skills", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.skills,
       "User_skills",
       userId,
@@ -149,8 +134,8 @@ class UserProfile {
     ));
 
     // Queries para registros de educación.
-    parameterizedQueries.push(this.generateDeletionQuery("Education_records", userId));
-    parameterizedQueries.push(this.generateRecordsInsertionQuery(
+    parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Education_records", "user_id", userId));
+    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
       body.education,
       "Education_records",
       userId,
@@ -158,68 +143,6 @@ class UserProfile {
     ));
 
     return parameterizedQueries;
-  }
-
-  /**
-   * Método auxiliar para crear una query parametrizada enfocada a
-   * borrar los registros de una tabla que referencien a cierto usuario.
-   * @param table Tabla donde ser hará el borrado.
-   * @param userId Id del usuario referenciado.
-   * @returns Una ParameterizedQuery para el borrado deseado.
-   */
-  private static generateDeletionQuery(table, userId) {
-    return new ParameterizedQuery(
-      `DELETE FROM ${table} WHERE user_id = ?`,
-      [ userId ]
-    );
-  }
-
-  /**
-   * Método auxiliar para generar una ParameterizedQuery adecuada para la inserción de
-   * los datos contenidos en el JSON de entrada, para la tabla de BD indicada,
-   * con el usuario referenciado y tomando las propiedades que se configuren por cada registro.
-   * @param recordsJSONText Texto JSON que contiene todos los registros a insertar.
-   * @param table Tabla de la BD a la cual se hará la inserción.
-   * @param userId Id del usuario referenciado en los registros.
-   * @param getRecordProperties Callback que produzca una lista con las propiedades a incluir
-   * por cada registro en el orden de columnas de la BD.
-   * @returns Una ParameterizedQuery para la inserción de datos deseada.
-   */
-  private static generateRecordsInsertionQuery(recordsJSONText: string, table: string, userId: string, getRecordProperties: (listItem) => any[]) {
-    const records = JSON.parse(recordsJSONText);
-    let insertQuery = `INSERT INTO ${table} VALUES`;
-    const insertParams = [];
-
-    // Cada entrada de lista en el JSON se convertirá en un registro a insertar.
-    for (const r of records) {
-      // El primer parámetro de cada registro es un ID único.
-      insertQuery += " (?, ";
-      insertParams.push(generateUUID());
-
-      // Por cada propiedad listada con el callback se agrega
-      // un placeholder a la query de inserción y un parámetro a la lista.
-      const properties = getRecordProperties(r);
-      for (const p of properties) {
-        insertQuery += "?, ";
-        insertParams.push(p);
-      }
-
-      // El último parámetro de cada registro es la referencia al usuario involucrado.
-      insertQuery += "?),";
-      insertParams.push(userId);
-    }
-
-    insertQuery = insertQuery.substring(0, insertQuery.length - 1);
-    return new ParameterizedQuery(insertQuery, insertParams);
-  }
-
-  /**
-   * Borra el archivo especificado de foto de perfil de un usuario.
-   * @param profilePictureId identificador de la foto de perfil a borrar.
-   */
-  private static deleteProfilePictureFile(profilePictureId: string) {
-    const fileLocation = `${this.profilePicturesDirectory}/${profilePictureId}`;
-    rmSync(fileLocation, { force: true });
   }
 
   /**
