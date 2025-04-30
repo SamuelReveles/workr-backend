@@ -16,12 +16,6 @@ export const register = [
     validator,
 ];
 
-export const login = [
-    body('email').notEmpty().isEmail().withMessage(INVALID_EMAIL),
-    body('password').notEmpty().withMessage(INVALID_PASSWORD),
-    validator,
-];
-
 export const updateProfile = [
     body('description').notEmpty().isString().withMessage(INVALID_DESCRIPTION),
     body('contactLinks').custom(contactLinksValidator),
