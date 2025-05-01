@@ -76,6 +76,43 @@ class Vacancy {
     // Se devuelve el array.
     return vacancyData;
   }  
+
+  /**
+   * Busca las vacantes que coincidan con los filtros proporcionados, en el orden
+   * deseado.
+   * @param body Conjunto de parámetros para la búsqueda. 
+   * @returns Array con los resultados de la búsqueda.
+   */
+  public static async searchVacancies(body) {
+    // Se ajustan los parámetros de la query dependiendo de los datos provistos
+    // en la request.
+    const positionFilter = body.position != "" ? `%${body.position}%` : "%";
+    const locationFilter = body.location != "" ? `%${body.location}%` : "%";
+    const companyFilter = body.company != "" ? `%${body.company}%` : "%";
+    const orderColumn = body.orderBy;
+    const orderDirection = body.orderDirection;
+
+    // Se realiza la consulta.
+    const results = await executeQuery(
+      "SELECT position, office_address, Vacancies.creation_date AS creation_date, Companies.name AS company " +
+      "FROM Vacancies INNER JOIN Companies ON Vacancies.company_id = Companies.id " +
+      "WHERE position LIKE ? AND " +
+      "office_address LIKE ? AND " +
+      "Companies.name LIKE ? " +
+      `ORDER BY ${orderColumn} ${orderDirection}`,
+      [ positionFilter, locationFilter, companyFilter ]
+    );
+    
+    // Se devuelven los resultados como un arreglo de objetos.
+    return results.map(row => {
+      return {
+        position: row["position"],
+        company: row["company"],
+        location: row["office_address"],
+        daysAgo: calculateDaysFrom((row["creation_date"] as Date)),
+      }
+    });
+  }
 }
 
 export default Vacancy;

@@ -13,6 +13,15 @@ export const post = [
   validator,
 ];
 
+export const search = [
+  body("position").isString().withMessage(messageFor("position")),
+  body("location").isString().withMessage(messageFor("location")),
+  body("company").isString().withMessage(messageFor("company")),
+  body("orderBy").notEmpty().isString().withMessage(messageFor("orderBy")),
+  body("orderDirection").notEmpty().isString().withMessage(messageFor("orderDirection")),
+  validator,
+];
+
 function messageFor(field: string) {
   return `Error en el campo ${field}, no se encontró o tiene tipo incorrecto`;
 }

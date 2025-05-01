@@ -31,3 +31,20 @@ export const getCompanyVacancies = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Busca las vacantes que coincidan con los parámetros provistos
+ * en la request.
+ * @returns HTTP 200 con un JSON que contiene el listado de resultados
+ * para la búsqueda de vacantes si se completa correctamente,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const searchVacancy = async (req, res) => {
+  try {
+    const searchResults = await Vacancy.searchVacancies(req.body);
+    return res.status(200).json(searchResults);
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}
