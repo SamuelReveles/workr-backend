@@ -20,7 +20,7 @@ import ParameterizedQuery from "./ParameterizedQuery";
    * Método auxiliar para generar una ParameterizedQuery adecuada para la inserción de
    * los datos contenidos en el JSON de entrada, para la tabla de BD indicada,
    * con la referencia dada y tomando las propiedades que se configuren por cada registro.
-   * @param recordsJSONText Texto JSON que contiene todos los registros a insertar.
+   * @param records Texto JSON o arreglo de objetos que contiene todos los registros a insertar.
    * @param table Tabla de la BD a la cual se hará la inserción.
    * @param referenceId Id del elemento al que referencia cada registro de esta colección.
    * @param getRecordProperties Callback que produzca una lista con las propiedades a incluir
@@ -28,17 +28,17 @@ import ParameterizedQuery from "./ParameterizedQuery";
    * @returns Una ParameterizedQuery para la inserción de datos deseada.
    */
 export function generateReferenceRecordsInsertionQuery(
-  recordsJSONText: string,
+  records: string | any[],
   table: string,
   referenceId: string,
   getRecordProperties: (listItem) => any[]
 ) {
-  const records = JSON.parse(recordsJSONText);
+  const recordsArray = Array.isArray(records) ? records : JSON.parse(records);
   let insertQuery = `INSERT INTO ${table} VALUES`;
   const insertParams = [];
 
   // Cada entrada de lista en el JSON se convertirá en un registro a insertar.
-  for (const r of records) {
+  for (const r of recordsArray) {
     // El primer parámetro de cada registro es un ID único.
     insertQuery += " (?, ";
     insertParams.push(generateUUID());
@@ -51,7 +51,7 @@ export function generateReferenceRecordsInsertionQuery(
       insertParams.push(p);
     }
 
-    // El último parámetro de cada registro es la referencia al usuario involucrado.
+    // El último parámetro de cada registro es la referencia involucrada.
     insertQuery += "?),";
     insertParams.push(referenceId);
   }
