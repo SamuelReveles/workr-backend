@@ -94,7 +94,7 @@ class Vacancy {
 
     // Se realiza la consulta.
     const results = await executeQuery(
-      "SELECT position, office_address, Vacancies.creation_date AS creation_date, Companies.name AS company " +
+      "SELECT Vacancies.id AS id, position, office_address, Vacancies.creation_date AS creation_date, Companies.name AS company " +
       "FROM Vacancies INNER JOIN Companies ON Vacancies.company_id = Companies.id " +
       "WHERE position LIKE ? AND " +
       "office_address LIKE ? AND " +
@@ -106,6 +106,7 @@ class Vacancy {
     // Se devuelven los resultados como un arreglo de objetos.
     return results.map(row => {
       return {
+        id: row["id"],
         position: row["position"],
         company: row["company"],
         location: row["office_address"],
