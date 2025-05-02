@@ -1,0 +1,15 @@
+meta {
+  name: Detalles de vacante
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/vacancies/details/:vacancyId
+  body: none
+  auth: none
+}
+
+params:path {
+  vacancyId: 
+}

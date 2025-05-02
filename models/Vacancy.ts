@@ -114,6 +114,55 @@ class Vacancy {
       }
     });
   }
+
+  /**
+   * Obtiene los detalles de la vacante indicada si existe.
+   * @param vacancyId Id de la vacante cuyos detalles se obtendrán.
+   * @returns Objeto con los detalles de la vacante referenciada si
+   * se encuentra, o nulo de otro modo.
+   */
+  public static async getVacancyDetails(vacancyId) {
+    // Se obtiene información básica de la vacante.
+    const vacancyResults = await executeQuery(
+      "SELECT * FROM Vacancies WHERE id = ?",
+      [ vacancyId ]
+    );
+
+    // Si no se encontró coincidencia de la vacante se devuelve nulo.
+    if (vacancyResults.length == 0) {
+      return null;
+    }
+
+    // Si se encontró la vacante se obtiene su fila de resultados.
+    const vacancyRow = vacancyResults[0];
+
+    // Se obtiene información de la empresa y habilidades asociadas
+    // con la vacante.
+    const companyRow = (await executeQuery(
+      "SELECT profile_picture, name FROM Companies WHERE id = ?",
+      [ vacancyRow["company_id"] ]
+    ))[0];
+    const skillResults = await executeQuery(
+      "SELECT skill_name FROM Vacancy_skills WHERE vacancy_id = ?",
+      [ vacancyId ]
+    );
+
+    // Se devuelve un objeto con toda la información de la vacante.
+    return {
+      vacancyId: vacancyId,
+      position: vacancyRow["position"],
+      companyId: vacancyRow["company_id"],
+      companyProfilePicture: companyRow["profile_picture"],
+      companyName: companyRow["name"],
+      postDate: (vacancyRow["creation_date"] as Date).toISOString().substring(0, 10),
+      location: vacancyRow["office_address"],
+      workModality: vacancyRow["work_modality"],
+      description: vacancyRow["description"],
+      skills: skillResults.map(row => row["skill_name"]),
+      workDays: vacancyRow["work_days"],
+      dailySchedule: vacancyRow["daily_schedule"],
+    };
+  }
 }
 
 export default Vacancy;

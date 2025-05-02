@@ -48,3 +48,26 @@ export const searchVacancy = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Obtiene los detalles de la vacante indicada en la ruta de solicitud.
+ * @returns HTPP 200 con JSON conteniendo los detalles de la vacante
+ * referenciada si se obtiene correctamente,
+ * HTTP 404 si no se encuentra la vacante referenciada,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const getVacancyDetails = async (req, res) => {
+  try {
+    const details = await Vacancy.getVacancyDetails(req.params.vacancyId);
+
+    if (details != null) {
+      return res.status(200).json(details);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch(err) {
+    return res.sendStatus(500);
+  }
+}
