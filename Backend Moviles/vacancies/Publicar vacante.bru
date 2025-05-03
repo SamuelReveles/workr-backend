@@ -1,0 +1,27 @@
+meta {
+  name: Publicar vacante
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/vacancies/post
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "position": "Junior developer",
+    "officeAddress": "Main st. 12345, state",
+    "workModality": "On site",
+    "workDays": "Mon - Fri",
+    "dailySchedule": "09AM - 05PM",
+    "description": "Some description of the job's activities",
+    "skills": [
+      "Awesome skill A",
+      "Awesome skill B",
+      "Awesome skill C"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Buscar vacante
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/vacancies/search_vacancy
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "position": "",
+    "location": "",
+    "company": "",
+    "orderBy": "position",
+    "orderDirection": "ASC"
+  }
+}

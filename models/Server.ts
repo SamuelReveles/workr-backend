@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import authRouter from '../routes/auth.routes';
 import userRouter from '../routes/users.routes';
 import companyRouter from '../routes/companies.routes';
+import vacanciesRouter from "../routes/vacancies.routes";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ class Server {
     private authPath: string;
     private usersPath: string;
     private companiesPath: string;
+    private vacanciesPath: string;
 
     constructor() {
         // Use express framework
@@ -42,6 +44,7 @@ class Server {
         this.authPath = '/api/auth';
         this.usersPath = '/api/users';
         this.companiesPath = '/api/companies';
+        this.vacanciesPath = "/api/vacancies";
         
         // Middlewares
         this.middlewares();
@@ -68,6 +71,7 @@ class Server {
         this.app.use(this.authPath, authRouter);
         this.app.use(this.usersPath, userRouter);
         this.app.use(this.companiesPath, companyRouter);
+        this.app.use(this.vacanciesPath, vacanciesRouter);
         // this.app.use(this.adminPath, administradorRoutes);
     }
 
