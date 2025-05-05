@@ -1,0 +1,17 @@
+meta {
+  name: Ver respuestas de formulario
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/job_applications/form_answers
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jobApplicationId": ""
+  }
+}

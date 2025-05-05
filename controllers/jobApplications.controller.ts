@@ -38,3 +38,27 @@ export const getVacancyApplicants = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Obtiene las respuestas al formulario de solicitud de empleo
+ * para la solicitud referenciada si es que existe.
+ * @returns HTTP 200 con JSON que contiene las respuestas
+ * al formulario de solicitud de empleo si se encuentra la solicitud,
+ * HTTP 404 si no se encuentra la solicitud de empleo,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const getJobApplicationFormAnswers = async (req, res) => {
+  try {
+    const formAnswers = await JobApplication.getFormAnswers(req.body.jobApplicationId);
+
+    if (formAnswers != null) {
+      return res.status(200).json(formAnswers);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

@@ -70,6 +70,40 @@ class JobApplication {
       };
     });
   }
+
+  /**
+   * Obtiene las respuestas al formulario de solicitud de empleo
+   * para la solicitud de empleo referenciada si es que existe.
+   * @param jobApplicationId Id de la solicitud de empleo cuyo formulario
+   * se recuperará.
+   * @returns Objeto con respuestas al formulario de la solicitud de
+   * empleo indicada, o null si no existe.
+   */
+  public static async getFormAnswers(jobApplicationId: string) {
+    // Se busca la información de la solicitud.
+    const applicationResults = await executeQuery(
+      "SELECT * FROM Job_applications WHERE id = ?",
+      [ jobApplicationId ]
+    );
+
+    // Si no se encuentran resultados para la solicitud referenciada
+    // quiere decir que no existe, por tanto se devuelve null.
+    if (applicationResults.length == 0) {
+      return null;
+    }
+
+    // Se devuelven las respuestas al formulario de la solicitud de empleo.
+    const applicationRow = applicationResults[0];
+    return {
+      phoneNumber: applicationRow["phone_number"],
+      highestEducationLevel: applicationRow["highest_education_level"],
+      experience: applicationRow["experience"],
+      hardSkills: applicationRow["hard_skills"],
+      softSkills: applicationRow["soft_skills"],
+      applicationReason: applicationRow["application_reason"],
+      portfolioLink: applicationRow["portfolio_link"],
+    }
+  }
 }
 
 export default JobApplication;
