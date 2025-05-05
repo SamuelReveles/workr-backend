@@ -84,3 +84,27 @@ export const registerInterview = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Devuelve un listado de los aspirantes que fueron contactados con
+ * una entrevista agendada para la vacante referenciada, si existe.
+ * @returns HTTP 200 con un JSON que contiene el listado con información
+ * resumida de los aspirantes contactados si los datos se obtienen correctamente,
+ * HTTP 404 si no se encuentra la vacante referenciada,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const getContactedVacancyApplicants = async (req, res) => {
+  try {
+    const contactedApplicants = await JobApplication.getContactedVacancyApplicants(req.body.vacancyId);
+    
+    if (contactedApplicants != null) {
+      return res.status(200).json(contactedApplicants);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

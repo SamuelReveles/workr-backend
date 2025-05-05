@@ -115,7 +115,7 @@ class JobApplication {
    * @returns True si se registra la entrevista correctamente, o null
    * si no se encuentra la solicitud referenciada.
    */
-  public static async registerInterview(jobApplicationId) {
+  public static async registerInterview(jobApplicationId: string) {
     // Se busca información de la solicitud de empleo referenciada.
     const jobApplicationResults = await executeQuery(
       "SELECT creation_date FROM Job_applications WHERE id = ?",
@@ -139,11 +139,55 @@ class JobApplication {
     // asociadas a la solicitud referenciada, de esa manera se sabe
     // que la entrevista fue agendada.
     await executeQuery(
-      "INSERT INTO job_interview_notes SET ?",
+      "INSERT INTO Job_interview_notes SET ?",
       [ newJobInterviewNotes ]
     );
     
     return true;
+  }
+
+  /**
+   * Devuelve un listado con información resumida de los aspirantes
+   * contactados por una entrevista agendada para la vacante referenciada,
+   * si existe.
+   * @param vacancyId Id de la vacante cuyos aspirantes contactados se consultarán.
+   * @returns Un array con el listado de aspirantes contactados para la vacante,
+   * o null si la vacante no existe.
+   */
+  public static async getContactedVacancyApplicants(vacancyId: string) {
+    // Se busca información sobre la vacante referenciada.
+    const vacancyResults = await executeQuery(
+      "SELECT creation_date FROM Vacancies WHERE id = ?",
+      [ vacancyId ]
+    );
+
+    // Si no hay resultados para la vacante referenciada significa
+    // que no existe, por tanto se devuelve null.
+    if (vacancyResults.length == 0) {
+      return null;
+    }
+
+    // Se obtiene información resumida de los usuarios que solicitaron empleo
+    // para la vacante dada y que fueron contactados para una entrevista.
+    const contactedApplicantsResults = await executeQuery(
+      "SELECT U.id AS user_id, U.full_name AS user_name, U.profile_picture AS user_profile_picture, " +
+      "A.id AS job_application_id, N.id AS interview_notes_id " +
+      "FROM Users AS U INNER JOIN Job_applications AS A ON U.id = A.user_id " +
+      "INNER JOIN Job_interview_notes AS N ON A.id = N.job_application_id " +
+      "WHERE A.vacancy_id = ?",
+      [ vacancyId ]
+    );
+
+    // Se devuelve el listado con información resumida de los aspirantes contactados.
+    return contactedApplicantsResults.map(row => {
+      return {
+        applicantId: row["user_id"],
+        applicantName: row["user_name"],
+        applicantProfilePicture: row["user_profile_picture"],
+        jobApplicationId: row["job_application_id"],
+        interviewNotesId: row["interview_notes_id"],
+      };
+    });
   }
 }
 
