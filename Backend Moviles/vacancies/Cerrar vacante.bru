@@ -1,0 +1,15 @@
+meta {
+  name: Cerrar vacante
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/api/vacancies/close_vacancy/:vacancyId
+  body: none
+  auth: none
+}
+
+params:path {
+  vacancyId: 
+}
