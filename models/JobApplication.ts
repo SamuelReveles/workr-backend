@@ -13,6 +13,7 @@ class JobApplication {
     // Se conforma el registro de la nueva solicitud de empleo.
     const newJobApplication = {
       id: generateUUID(),
+      contact_email: body.contactEmail,
       phone_number: body.phoneNumber,
       highest_education_level: body.highestEducationLevel,
       experience: body.experience,
@@ -95,6 +96,7 @@ class JobApplication {
     // Se devuelven las respuestas al formulario de la solicitud de empleo.
     const applicationRow = applicationResults[0];
     return {
+      contactEmail: applicationRow["contact_email"],
       phoneNumber: applicationRow["phone_number"],
       highestEducationLevel: applicationRow["highest_education_level"],
       experience: applicationRow["experience"],
@@ -103,6 +105,45 @@ class JobApplication {
       applicationReason: applicationRow["application_reason"],
       portfolioLink: applicationRow["portfolio_link"],
     }
+  }
+
+  /**
+   * Registra un agendado de entrevista en la base de datos para la 
+   * solicitud referenciada
+   * @param jobApplicationId Id de la solicitud de empleo por la cual se
+   * agenda la entrevista.
+   * @returns True si se registra la entrevista correctamente, o null
+   * si no se encuentra la solicitud referenciada.
+   */
+  public static async registerInterview(jobApplicationId) {
+    // Se busca información de la solicitud de empleo referenciada.
+    const jobApplicationResults = await executeQuery(
+      "SELECT creation_date FROM Job_applications WHERE id = ?",
+      [ jobApplicationId ]
+    );
+
+    // Si no se encuentran resultados para la solicitud de empleo
+    // significa que no existe, por tanto se devuelve null.
+    if (jobApplicationResults.length == 0) {
+      return null;
+    }
+
+    // Se define la información de un nuevo registro de notas de entrevista.
+    const newJobInterviewNotes = {
+      id: generateUUID(),
+      interview_notes: "",
+      job_application_id: jobApplicationId,
+    };
+
+    // Se registra una nueva entrada de notas de entrevista de empleo
+    // asociadas a la solicitud referenciada, de esa manera se sabe
+    // que la entrevista fue agendada.
+    await executeQuery(
+      "INSERT INTO job_interview_notes SET ?",
+      [ newJobInterviewNotes ]
+    );
+    
+    return true;
   }
 }
 

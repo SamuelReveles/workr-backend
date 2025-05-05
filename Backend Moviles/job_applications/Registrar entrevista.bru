@@ -1,0 +1,17 @@
+meta {
+  name: Registrar entrevista
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/job_applications/register_interview
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "jobApplicationId": ""
+  }
+}

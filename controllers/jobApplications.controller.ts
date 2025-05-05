@@ -62,3 +62,25 @@ export const getJobApplicationFormAnswers = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Registra un agendado de entrevista para una solicitud de empleo referenciada.
+ * @returns HTTP 200 si el agendado se registró correctamente,
+ * HTTP 404 si no se encontró la solicitud de empleo asociada,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const registerInterview = async (req, res) => {
+  try {
+    const scheduled = await JobApplication.registerInterview(req.body.jobApplicationId);
+    
+    if (scheduled != null) {
+      return res.sendStatus(200);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

@@ -2,6 +2,7 @@ import { body } from "express-validator";
 import { validator } from "./validator";
 
 export const register = [
+  body("contactEmail").notEmpty().isString().isEmail().withMessage(messageFor("contactEmail")),
   body("phoneNumber").notEmpty().isString().isMobilePhone("any").withMessage(messageFor("phoneNumber")),
   body("highestEducationLevel").notEmpty().isString().withMessage(messageFor("highestEducationLevel")),
   body("experience").notEmpty().isString().withMessage(messageFor("experience")),
@@ -24,6 +25,11 @@ export const formAnswers = [
   body("jobApplicationId").notEmpty().isString().withMessage(messageFor("jobApplicationId")),
   validator,
 ];
+
+export const interview = [
+  body("jobApplicationId").notEmpty().isString().withMessage(messageFor("jobApplicationId")),
+  validator,
+]
 
 function messageFor(field: string) {
   return `Error en el campo ${field}, no se encontró o tiene tipo o formato incorrecto`;
