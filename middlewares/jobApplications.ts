@@ -36,6 +36,11 @@ export const contactedApplicants = [
   validator,
 ];
 
+export const interviewNotes = [
+  body("interviewNotesId").notEmpty().isString().withMessage(messageFor("interviewNotesId")),
+  validator,
+];
+
 function messageFor(field: string) {
   return `Error en el campo ${field}, no se encontró o tiene tipo o formato incorrecto`;
 }

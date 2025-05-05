@@ -108,3 +108,26 @@ export const getContactedVacancyApplicants = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Obtiene las notas de entrevista con el id referenciado si existen.
+ * @returns HTTP 200 con un JSON que contiene las notas de entrevista
+ * si se obtienen correctamente,
+ * HTTP 404 si no se encuentran las notas referenciadas,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const getInterviewNotes = async (req, res) => {
+  try {
+    const interviewNotes = await JobApplication.getInterviewNotes(req.body.interviewNotesId);
+
+    if (interviewNotes != null) {
+      return res.status(200).json(interviewNotes);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

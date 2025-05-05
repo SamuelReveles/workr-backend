@@ -189,6 +189,32 @@ class JobApplication {
       };
     });
   }
+
+  /**
+   * Obtiene las notas de entrevista con el id referenciado si existen.
+   * @param interviewNotesId Id de las notas de entrevista a recuperar de la BD.
+   * @returns Un objeto que contiene las notas de entrevista si se encuentran,
+   * o null si no se encuentran las notas referenciadas.
+   */
+  public static async getInterviewNotes(interviewNotesId: string) {
+    // Se buscan las notas en la BD.
+    const notesResults = await executeQuery(
+      "SELECT interview_notes FROM Job_interview_notes WHERE id = ?",
+      [ interviewNotesId ]
+    );
+
+    // Si no se encuentran resultados para la id referenciada de notas
+    // significa que no existen, por lo tanto se devuelve null.
+    if (notesResults.length == 0) {
+      return null;
+    }
+    // Si se encuentran las notas se devuelven en un objeto.
+    else {
+      return {
+        interviewNotes: notesResults[0]["interview_notes"],
+      };
+    }
+  }
 }
 
 export default JobApplication;
