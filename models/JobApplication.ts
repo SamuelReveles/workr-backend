@@ -31,6 +31,45 @@ class JobApplication {
       [ newJobApplication ]
     );
   }
+
+  /**
+   * Obtiene la lista de aspirantes a la vacante indicada si existe.
+   * @param vacancyId Id de la vacante cuyos aspirantes se obtendrán.
+   * @returns Array que contiene información resumida de los aspirantes
+   * a la vacante indicada, o null si no se encuentra la vacante.
+   */
+  public static async getVacancyApplicants(vacancyId: string) {
+    // Verificación para saber si la vacante realmente existe.
+    const vacancyResults = await executeQuery(
+      "SELECT position FROM Vacancies WHERE id = ?",
+      [ vacancyId ]
+    );
+
+    // Si no se encuentran resultados para la vacante significa que no
+    // existe, por tanto se devuelve null.
+    if (vacancyResults.length == 0) {
+      return null;
+    }
+
+    // Obtención de datos de aspirantes.
+    const aspirantsResults = await executeQuery(
+      "SELECT Job_applications.id AS job_application_id, Users.id AS user_id, " +
+      "Users.full_name AS name, Users.profile_picture AS profile_picture " +
+      "FROM Job_applications INNER JOIN Users ON Job_applications.user_id = Users.id " +
+      "WHERE Job_applications.vacancy_id = ?",
+      [ vacancyId ]
+    );
+
+    // Se devuelve un array conteniendo la información resumida de aspirantes.
+    return aspirantsResults.map(row => {
+      return {
+        jobApplicationId: row["job_application_id"],
+        aspirantId: row["user_id"],
+        aspirantName: row["name"],
+        aspirantProfilePicture: row["profile_picture"],
+      };
+    });
+  }
 }
 
 export default JobApplication;

@@ -15,6 +15,11 @@ export const register = [
   validator,
 ];
 
+export const vacancyApplicants = [
+  body("vacancyId").notEmpty().isString().withMessage(messageFor("vacancyId")),
+  validator,
+]
+
 function messageFor(field: string) {
   return `Error en el campo ${field}, no se encontró o tiene tipo o formato incorrecto`;
 }

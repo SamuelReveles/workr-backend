@@ -15,3 +15,26 @@ export const registerApplicant = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Obtiene los aspirantes a una vacante especificada en la solicitud.
+ * @returns HTTP 200 con JSON que contiene un listado con
+ * información resumida de los aspirantes a la vacante,
+ * HTTP 404 si no se encuentra la vacante indicada,
+ * HTTP 500 si ocurre un error al procesar la solicitud.
+ */
+export const getVacancyApplicants = async (req, res) => {
+  try {
+    const applicants = await JobApplication.getVacancyApplicants(req.body.vacancyId);
+
+    if (applicants != null) {
+      return res.status(200).json(applicants);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}
