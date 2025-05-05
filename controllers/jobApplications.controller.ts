@@ -131,3 +131,28 @@ export const getInterviewNotes = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Actualiza las notas de una entrevista referenciada.
+ * @returns HTTP 200 si las notas se actualizaron correctamente,
+ * HTTP 404 si no se encontró un registro para las notas referenciadas,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const updateInterviewNotes = async (req, res) => {
+  try {
+    const updated = await JobApplication.updateInterviewNotes(
+      req.body.interviewNotesId,
+      req.body.interviewNotes
+    );
+
+    if (updated != null) {
+      return res.sendStatus(200);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

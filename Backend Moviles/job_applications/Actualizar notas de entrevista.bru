@@ -1,0 +1,18 @@
+meta {
+  name: Actualizar notas de entrevista
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host}}/api/job_applications/update_interview_notes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "interviewNotesId": "",
+    "interviewNotes": ""
+  }
+}

@@ -215,6 +215,35 @@ class JobApplication {
       };
     }
   }
+
+  /**
+   * Actualiza las notas guardadas en la BD de una entrevista referenciada.
+   * @param interviewNotesId Id de las notas que se actualizarán.
+   * @param interviewNotes Nuevo contenido de las notas a registrar.
+   * @returns True si las notas se actualizan correctamente,
+   * o null si no se encuentra el registro de las notas referenciadas.
+   */
+  public static async updateInterviewNotes(interviewNotesId: string, interviewNotes: string) {
+    // Se busca información sobre el registro de las notas.
+    const notesResults = await executeQuery(
+      "SELECT interview_notes FROM Job_interview_notes WHERE id = ?",
+      [ interviewNotesId ]
+    );
+
+    // Si no se encuentra el registro de las notas referenciadas
+    // significa que no existen, por tanto se devuelve null.
+    if (notesResults.length == 0) {
+      return null;
+    }
+
+    // Se actualiza el registro de notas encontrado con el id.
+    await executeQuery(
+      "UPDATE Job_interview_notes SET interview_notes = ? WHERE id = ?",
+      [ interviewNotes, interviewNotesId ]
+    );
+    
+    return true;
+  }
 }
 
 export default JobApplication;
