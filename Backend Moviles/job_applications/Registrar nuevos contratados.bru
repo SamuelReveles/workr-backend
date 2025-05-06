@@ -1,0 +1,17 @@
+meta {
+  name: Registrar nuevos contratados
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host}}/api/job_applications/new_hires
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "newHiresIds": []
+  }
+}

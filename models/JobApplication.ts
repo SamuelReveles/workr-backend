@@ -1,3 +1,4 @@
+import { RowDataPacket } from "mysql2";
 import { executeQuery } from "../database/connection";
 import { getDateString } from "../helpers/datetime";
 import { generateUUID } from "../helpers/uuid";
@@ -243,6 +244,68 @@ class JobApplication {
     );
     
     return true;
+  }
+
+  /**
+   * Agrega una serie de empleados recién contratados a la BD.
+   * @param newHiresIds Arreglo con los id de usuario de los aspirantes contratados.
+   * @param companyId Id de la empresa que contrata.
+   * @returns Un arreglo que contiene cualquier posible usuario no encontrado,
+   * si es que alguno no se encontró, o un arreglo vacío en caso de que todos los
+   * contratados se hayan registrado.
+   */
+  public static async registerNewHires(newHiresIds: string[], companyId: string) {
+    // Se busca información con todos los ids de aspirantes recién contratados.
+    const usersResults = await executeQuery(
+      "SELECT id FROM Users WHERE id IN (?)",
+      [ newHiresIds ]
+    );
+
+    // Cada resultado obtenido se agrega a un mapa con los ids validados.
+    const usersMap = (usersResults as RowDataPacket[]).reduce((map, row) => {
+      map[row["id"]] = true;
+      return map;
+    }, {});
+
+    // Se construye un array con cada id proporcionado que no fue
+    // validado por medio de la consulta del mapa de ids validados.
+    const notFounds = [];
+    for (const id of newHiresIds) {
+      if (!usersMap[id]) {
+        notFounds.push(`${id}`);
+      }
+    }
+
+    // Si el array de ids no validados tiene contenido, se retorna.
+    if (notFounds.length > 0) {
+      return notFounds;
+    }
+
+    // Se genera y ejecuta la query para insertar nuevos empleados a la empresa.
+    const { query, params } = this.generateEmployeesInsertionQuery(newHiresIds, companyId);
+    await executeQuery(query, params);
+
+    // Se retorna un arreglo vacío indicando que no hay
+    // contratados que no fueran encontrados en la BD.
+    return [];
+  }
+
+  /**
+   * Genera una query para registrar a todos los nuevos contratados de una empresa.
+   * @param newHiresIds Ids de usuario de todos los nuevos contratados.
+   * @param companyId Id de la emprsa que contrata.
+   * @returns Query y parámetros para la inserción de los nuevos empleados.
+   */
+  private static generateEmployeesInsertionQuery(newHiresIds: string[], companyId) {
+    let query = "INSERT INTO employees VALUES ";
+    const params = [];
+    for (const id of newHiresIds) {
+      query += "(?, ?, ?), ";
+      params.push(generateUUID(), id, companyId);
+    }
+    query = query.substring(0, query.length - 2);
+
+    return { query, params };
   }
 }
 

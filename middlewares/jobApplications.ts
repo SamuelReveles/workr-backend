@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 import { validator } from "./validator";
+import { newHiresValidator } from "./customValidators";
 
 export const register = [
   body("contactEmail").notEmpty().isString().isEmail().withMessage(messageFor("contactEmail")),
@@ -44,6 +45,11 @@ export const interviewNotes = [
 export const updatedInterviewNotes = [
   body("interviewNotesId").notEmpty().isString().withMessage(messageFor("interviewNotesId")),
   body("interviewNotes").notEmpty().isString().withMessage(messageFor("interviewNotes")),
+  validator,
+];
+
+export const newHires = [
+  body("newHiresIds").custom(newHiresValidator),
   validator,
 ];
 
