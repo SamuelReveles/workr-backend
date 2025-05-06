@@ -10,7 +10,7 @@ const INVALID_DESCRIPTION = 'Es necesario enviar una descripción para completar
 
 export const register = [
     body('email').notEmpty().isEmail().withMessage(INVALID_EMAIL),
-    body('fullName').notEmpty().isEmail().withMessage(INVALID_FULLNAME),
+    body('fullName').notEmpty().isString().withMessage(INVALID_FULLNAME),
     body('country').notEmpty().isString().withMessage(INVALID_COUNTRY),
     body('password').notEmpty().withMessage(INVALID_PASSWORD),
     validator,

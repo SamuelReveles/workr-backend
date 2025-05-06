@@ -1,0 +1,17 @@
+meta {
+  name: Ver aspirantes contactados
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/api/job_applications/contacted_vacancy_applicants
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "vacancyId": ""
+  }
+}

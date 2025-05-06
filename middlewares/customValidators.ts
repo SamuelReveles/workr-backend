@@ -65,6 +65,18 @@ export function educationValidator(value) {
   return true;
 }
 
+export function newHiresValidator(value) {
+  const field = "newHiresIds";
+  const arrayData = validateJSONArray(value, field);
+
+  arrayData.forEach((item, index) => {
+    if (typeof item != "string")
+      throw new Error(`El id del aspirante contratado en la posición ${index} no es de tipo string`);
+  });
+
+  return true;
+}
+
 /**
  * Verifica que el tipo de dato de la entrada sea un array o la representación
  * en JSON de un array para parsearlo, lanza un error si no se detecta un array.

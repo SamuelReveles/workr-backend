@@ -1,0 +1,25 @@
+meta {
+  name: Registrar aspirante
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/job_applications/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "contactEmail": "",
+    "phoneNumber": "1234567890",
+    "highestEducationLevel": "Bachelor's degree",
+    "experience": "Experience related to the vacancy",
+    "hardSkills": "Technical skills valuable for the vacancy",
+    "softSkills": "Collaboration skills valuable for the vacancy",
+    "applicationReason": "An inspiring reason to apply to the vacancy",
+    "portfolioLink": "some_portfolio.example.com",
+    "vacancyId": ""
+  }
+}

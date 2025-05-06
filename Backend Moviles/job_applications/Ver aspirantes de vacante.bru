@@ -1,0 +1,17 @@
+meta {
+  name: Ver aspirantes de vacante
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/api/job_applications/vacancy_applicants
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "vacancyId": ""
+  }
+}

@@ -71,3 +71,26 @@ export const getVacancyDetails = async (req, res) => {
     return res.sendStatus(500);
   }
 }
+
+/**
+ * Cierra una vacante para que ya no aparezca en resultados de búsqueda
+ * y no pueda recibir nuevas solicitudes de aspirantes.
+ * @returns HTTP 200 si la vacante existe y se cerró correctamente,
+ * HTTP 404 si no se encontró la vacante,
+ * HTTP 500 si ocurrió un error al procesar la request.
+ */
+export const closeVacancy = async (req, res) => {
+  try {
+    const closed = await Vacancy.closeVacancy(req.params.vacancyId);
+
+    if (closed != null) {
+      return res.sendStatus(200);
+    }
+    else {
+      return res.sendStatus(404);
+    }
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}

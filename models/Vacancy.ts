@@ -22,6 +22,7 @@ class Vacancy {
       daily_schedule: body.dailySchedule,
       description: body.description,
       creation_date: getDateString(),
+      accepts_applications: true,
       company_id: companyId,
     };
 
@@ -96,7 +97,8 @@ class Vacancy {
     const results = await executeQuery(
       "SELECT Vacancies.id AS id, position, office_address, Vacancies.creation_date AS creation_date, Companies.name AS company " +
       "FROM Vacancies INNER JOIN Companies ON Vacancies.company_id = Companies.id " +
-      "WHERE position LIKE ? AND " +
+      "WHERE Vacancies.accepts_applications = 1 AND " +
+      "position LIKE ? AND " +
       "office_address LIKE ? AND " +
       "Companies.name LIKE ? " +
       `ORDER BY ${orderColumn} ${orderDirection}`,
@@ -162,6 +164,35 @@ class Vacancy {
       workDays: vacancyRow["work_days"],
       dailySchedule: vacancyRow["daily_schedule"],
     };
+  }
+
+  /**
+   * Cierra una vacante para que ya no aparezca en resultados de búsqueda y no pueda
+   * recibir nuevas solicitudes de aspirantes.
+   * @param vacancyId Id de la vacante a cerrar.
+   * @returns True si la vacante se cerró correctamente, o null si no se encontró.
+   */
+  public static async closeVacancy(vacancyId) {
+    // Se busca la vacante en la BD para saber si existe.
+    const vacancyResults = await executeQuery(
+      "SELECT position FROM Vacancies WHERE id = ?",
+      [ vacancyId ]
+    );
+
+    // Si no se encuentra la vacante en la BD significa que
+    // no existe, por tanto se devuelve null.
+    if (vacancyResults.length == 0) {
+      return null;
+    }
+
+    // Se actualiza la vacante para que ya no esté disponible a solicitudes.
+    await executeQuery(
+      "UPDATE Vacancies SET accepts_applications = 0 WHERE id = ?",
+      [ vacancyId ]
+    );
+
+    // Devolver true indica que la vacante se cerró correctamente.
+    return true;
   }
 }
 
