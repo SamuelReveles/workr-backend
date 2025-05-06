@@ -297,7 +297,7 @@ class JobApplication {
    * @returns Query y parámetros para la inserción de los nuevos empleados.
    */
   private static generateEmployeesInsertionQuery(newHiresIds: string[], companyId) {
-    let query = "INSERT INTO employees VALUES ";
+    let query = "INSERT INTO Employees VALUES ";
     const params = [];
     for (const id of newHiresIds) {
       query += "(?, ?, ?), ";
