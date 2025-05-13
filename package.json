@@ -5,11 +5,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "tsc --watch",
-    "build": "tsc",
     "start": "nodemon dist/index.js",
-    "deploy": "npm install & npm run build"
+    "start-vercel": "nodemon src/index.ts",
+    "build": "rimraf dist && tsc",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist"
   },
   "keywords": [],
+  "pre-commit": [
+    "ts.check",
+    "build",
+    "add-build"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -20,6 +27,8 @@
     "@types/node": "^22.13.14",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.9",
+    "pre-commit": "^1.2.2",
+    "rimraf": "^6.0.1",
     "typescript": "^5.8.2"
   },
   "dependencies": {
