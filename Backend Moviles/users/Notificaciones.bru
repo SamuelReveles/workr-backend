@@ -1,0 +1,15 @@
+meta {
+  name: Notificaciones
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/api/users/notifications
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ2YTlhMzA2LWM4NDctNGZiNS1hZWY2LTRlZjExNjQ1MjFiYSIsInR5cGUiOiJ1c2VyIiwiaWF0IjoxNzQ3MTQ0OTk1LCJleHAiOjE3NDcxNDg1OTV9.svDm4RTfdfUHxslk8DECIKx2LJPGM-gvF5G7kJiMs7w
+}

@@ -19,7 +19,7 @@ class User {
     email: string,
     password: string,
     country: string
-  ): Promise<void> {
+  ): Promise<string> {
     const id = generateUUID();
     const hashedPassword = hashPassword(password);
     const emptyProfilePicture = "";
@@ -43,6 +43,7 @@ class User {
     ];
     
     await executeQuery(query, parameters);
+    return id;
   }
 }
 

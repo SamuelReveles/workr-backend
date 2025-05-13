@@ -11,11 +11,12 @@ export const validateLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-      return await Auth.validateCredentials(email, password)
-          .then(jwt => res.status(200).json({ jwt }))
-          .catch(_ => res.sendStatus(401));
+    return await Auth.validateCredentials(email, password)
+      .then(jwt => res.status(200).json({ jwt }))
+      .catch(_ => res.sendStatus(401));
   }
-  catch(e) {
-      return res.sendStatus(500);
+  catch (e) {
+    console.log(e);
+    return res.sendStatus(500)
   }
 }
