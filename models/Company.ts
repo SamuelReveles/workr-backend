@@ -7,6 +7,7 @@ import { getDateString } from "../helpers/datetime";
 import ParameterizedQuery from "../database/ParameterizedQuery";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 import { RowDataPacket } from "mysql2";
+import { DataPoint, formatChartData } from '../helpers/charts';
 
 class Company {
   /**
@@ -102,6 +103,40 @@ class Company {
   }
 
   /**
+   * Obtiene la información de las gráficas de la empresa.
+   * @param companyId Id de la empresa.
+   * @returns Conjunto de información de las gráficas.
+   */
+  public static async getVacancyCharts(companyId: string) {
+    const [applicationsData, newJobsData] = await Promise.all([
+      // Obtener el historial de solicitudes de la empresa
+      executeQuery(
+        `
+        SELECT COUNT(ja.id) AS quantity, MONTH(ja.creation_date) AS month, YEAR(ja.creation_date) AS year FROM Job_applications ja 
+        INNER JOIN Vacancies v ON v.id = ja.vacancy_id 
+        INNER JOIN Companies c ON c.id = v.company_id
+        WHERE c.id = ?;
+        `,
+        [companyId]
+      ),
+      // Obtener alta de empleados
+      executeQuery(
+        `
+          SELECT COUNT(user_id) AS quantity, MONTH(accepted_date) AS month, YEAR(accepted_date) AS year 
+          FROM Employees
+          WHERE company_id = ?;
+        `,
+        [companyId]
+      )
+    ]);
+
+    const applicationsPoints = applicationsData.map(a => { return { quantity: a.quantity, month: a.month, year: a.year } });
+    const newJobsDataPoints = newJobsData.map(j => { return { quantity: j.quantity, month: j.month, year: j.year } });
+
+    return { apllications: formatChartData(applicationsPoints), jobs: formatChartData(newJobsDataPoints) };
+  }
+
+  /**
    * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
    * @param id Identificador de la foto cuya ruta se busca.
    * @returns Ruta absoluta para la foto de perfil si existe,
@@ -165,7 +200,7 @@ class Company {
       "description, mission, vision FROM Companies WHERE id = ?",
       [companyId]
     );
-    
+
     if (queryResults.length == 0) {
       return null;
     }

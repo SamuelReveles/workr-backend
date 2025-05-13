@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProfilePicture = exports.getCompanyProfile = exports.updateCompanyProfile = exports.registerCompany = void 0;
+exports.getProfilePicture = exports.getCompanyProfile = exports.updateCompanyProfile = exports.companyCharts = exports.registerCompany = void 0;
 const Company_1 = __importDefault(require("../models/Company"));
 /**
  * Registra una empresa tomando los datos de la solicitud.
@@ -29,6 +29,21 @@ const registerCompany = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.registerCompany = registerCompany;
+/**
+ * Retorna los datos de las gráficas de las vacantes de una empresa
+ * @returns HTTP 200 con un JSON que contiene los datos de las gráficas
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+const companyCharts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const searchResults = yield Company_1.default.getVacancyCharts(req.companyId);
+        return res.status(200).json(searchResults);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+});
+exports.companyCharts = companyCharts;
 /**
  * Actualiza los datos de perfil de una empresa tomando los datos de la solicitud.
  * @returns HTTP 200 si la actualización se completa correctamente,

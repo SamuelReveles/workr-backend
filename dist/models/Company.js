@@ -19,6 +19,7 @@ const encryption_1 = require("../helpers/encryption");
 const datetime_1 = require("../helpers/datetime");
 const ParameterizedQuery_1 = __importDefault(require("../database/ParameterizedQuery"));
 const queryGenerators_1 = require("../database/queryGenerators");
+const charts_1 = require("../helpers/charts");
 class Company {
     /**
      * Registra una nueva empresa tomando los datos de la solicitud.
@@ -92,6 +93,33 @@ class Company {
             const contactLinks = yield (0, connection_1.executeQuery)("SELECT platform, link FROM Company_contact_links WHERE company_id = ?", [companyId]);
             // Se devuelve un objeto que contiene toda la información del perfil.
             return Object.assign(Object.assign({}, mainData), { contactLinks });
+        });
+    }
+    /**
+     * Obtiene la información de las gráficas de la empresa.
+     * @param companyId Id de la empresa.
+     * @returns Conjunto de información de las gráficas.
+     */
+    static getVacancyCharts(companyId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const [applicationsData, newJobsData] = yield Promise.all([
+                // Obtener el historial de solicitudes de la empresa
+                (0, connection_1.executeQuery)(`
+        SELECT COUNT(ja.id) AS quantity, MONTH(ja.creation_date) AS month, YEAR(ja.creation_date) AS year FROM Job_applications ja 
+        INNER JOIN Vacancies v ON v.id = ja.vacancy_id 
+        INNER JOIN Companies c ON c.id = v.company_id
+        WHERE c.id = ?;
+        `, [companyId]),
+                // Obtener alta de empleados
+                (0, connection_1.executeQuery)(`
+          SELECT COUNT(user_id) AS quantity, MONTH(accepted_date) AS month, YEAR(accepted_date) AS year 
+          FROM Employees
+          WHERE company_id = ?;
+        `, [companyId])
+            ]);
+            const applicationsPoints = applicationsData.map(a => { return { quantity: a.quantity, month: a.month, year: a.year }; });
+            const newJobsDataPoints = newJobsData.map(j => { return { quantity: j.quantity, month: j.month, year: j.year }; });
+            return { apllications: (0, charts_1.formatChartData)(applicationsPoints), jobs: (0, charts_1.formatChartData)(newJobsDataPoints) };
         });
     }
     /**
