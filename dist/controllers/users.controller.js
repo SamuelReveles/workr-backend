@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
+exports.getNotifications = exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
+const notifications_1 = require("../database/notifications");
 const User_1 = __importDefault(require("../models/User"));
 const UserProfile_1 = __importDefault(require("../models/UserProfile"));
 /**
@@ -24,7 +25,8 @@ const UserProfile_1 = __importDefault(require("../models/UserProfile"));
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { fullName, email, password, country } = req.body;
     try {
-        yield User_1.default.create(fullName, email, password, country);
+        const userId = yield User_1.default.create(fullName, email, password, country);
+        yield (0, notifications_1.databaseNotificationsHandler)(userId, "Bienvenido a Work-R", "Completa tu perfil y empieza con la búsqueda de tu empleo");
         return res.sendStatus(201);
     }
     catch (e) {
@@ -91,4 +93,20 @@ const getProfilePicture = (req, res) => {
     }
 };
 exports.getProfilePicture = getProfilePicture;
+/**
+ * Devuelve las notificaciones del usuario autenticado.
+ * @returns HTTP 200 con las notificaciones del usuario,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+const getNotifications = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const notifications = yield (0, notifications_1.getUserNotifications)(req.userId);
+        yield (0, notifications_1.readNotifications)(req.userId);
+        return res.status(200).json(notifications);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+});
+exports.getNotifications = getNotifications;
 //# sourceMappingURL=users.controller.js.map

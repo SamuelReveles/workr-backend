@@ -1,3 +1,4 @@
+import { databaseNotificationsHandler, getUserNotifications, readNotifications } from "../database/notifications";
 import User from "../models/User";
 import UserProfile from "../models/UserProfile";
 
@@ -11,10 +12,11 @@ export const registerUser = async (req, res) => {
     const { fullName, email, password, country } = req.body;
 
     try {
-        await User.create(fullName, email, password, country);
+        const userId = await User.create(fullName, email, password, country);
+        await databaseNotificationsHandler(userId, "Bienvenido a Work-R", "Completa tu perfil y empieza con la búsqueda de tu empleo");
         return res.sendStatus(201);
     }
-    catch(e) {
+    catch (e) {
         return res.sendStatus(500);
     }
 }
@@ -45,7 +47,7 @@ export const updateUserProfile = async (req, res) => {
 export const getUserProfile = async (req, res) => {
     try {
         const profile = await UserProfile.getProfile(req.params.userId);
-        
+
         if (profile == null) {
             return res.sendStatus(404);
         }
@@ -53,7 +55,7 @@ export const getUserProfile = async (req, res) => {
             return res.status(200).json(profile);
         }
     }
-    catch(err) {
+    catch (err) {
         return res.sendStatus(500);
     }
 }
@@ -74,6 +76,22 @@ export const getProfilePicture = (req, res) => {
         else {
             return res.status(200).sendFile(profilePicturePath);
         }
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+}
+
+/**
+ * Devuelve las notificaciones del usuario autenticado.
+ * @returns HTTP 200 con las notificaciones del usuario,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+export const getNotifications = async (req, res) => {
+    try {
+        const notifications = await getUserNotifications(req.userId);
+        await readNotifications(req.userId);
+        return res.status(200).json(notifications);
     }
     catch (err) {
         return res.sendStatus(500);

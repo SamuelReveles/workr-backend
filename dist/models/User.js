@@ -47,6 +47,7 @@ class User {
                 currentDate
             ];
             yield (0, connection_1.executeQuery)(query, parameters);
+            return id;
         });
     }
 }
