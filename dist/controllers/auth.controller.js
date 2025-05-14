@@ -24,11 +24,14 @@ const Auth_1 = __importDefault(require("../models/Auth"));
 const validateLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
-        return yield Auth_1.default.validateCredentials(email, password)
-            .then(jwt => res.status(200).json({ jwt }))
-            .catch(_ => res.sendStatus(401));
+        const loginResponse = yield Auth_1.default.validateCredentials(email, password);
+        res.status(200).json(loginResponse);
     }
     catch (e) {
+        if (e.message === "Unauthorized") {
+            res.status(401);
+        }
+        console.log(e);
         return res.sendStatus(500);
     }
 });

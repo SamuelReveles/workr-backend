@@ -11,11 +11,14 @@ export const validateLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    return await Auth.validateCredentials(email, password)
-      .then(jwt => res.status(200).json({ jwt }))
-      .catch(_ => res.sendStatus(401));
+    const loginResponse = await Auth.validateCredentials(email, password)
+    res.status(200).json(loginResponse);
   }
   catch (e) {
+    if (e.message === "Unauthorized") {
+      res.status(401);
+    }
+    console.log(e);
     return res.sendStatus(500)
   }
 }

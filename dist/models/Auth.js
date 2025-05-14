@@ -38,7 +38,7 @@ class Auth {
                 }
                 // Si el email no coincidió de nuevo, se rechaza la promesa de login.
                 else {
-                    return Promise.reject();
+                    return Promise.reject(new Error("Unauthorized"));
                 }
             }
             // Según el tipo de login se valida la contraseña con el campo adecuado.
@@ -47,11 +47,11 @@ class Auth {
             // creando un jwt de autenticación.
             if ((0, encryption_1.isPasswordEqualToStored)(password, storedPassword)) {
                 const jwt = (0, jwt_1.generateJWT)(queryResults[0]["id"], loginType);
-                return Promise.resolve(jwt);
+                return Promise.resolve({ jwt, id: queryResults[0]["id"] });
             }
             // Si las contraseñas no coinciden, se rechaza la promesa de login.
             else {
-                return Promise.reject();
+                return Promise.reject(new Error("Unauthorized"));
             }
         });
     }

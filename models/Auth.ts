@@ -11,7 +11,7 @@ class Auth {
    * @returns Una promise que se resuelve con un JWT si se logra una autenticación,
    * o que se rechaza de otro modo.
    */
-  public static async validateCredentials(email: string, password: string): Promise<string> {
+  public static async validateCredentials(email: string, password: string): Promise<any> {
     // Primero se intenta hacer un login como usuario.
     let queryResults: RowDataPacket[] = await executeQuery(
       "SELECT id, hashed_password FROM Users WHERE email = ?",
@@ -36,7 +36,7 @@ class Auth {
       }
       // Si el email no coincidió de nuevo, se rechaza la promesa de login.
       else {
-        return Promise.reject();
+        return Promise.reject(new Error("Unauthorized"));
       }
     }
 
@@ -48,11 +48,11 @@ class Auth {
     // creando un jwt de autenticación.
     if (isPasswordEqualToStored(password, storedPassword)) {
       const jwt = generateJWT(queryResults[0]["id"], loginType);
-      return Promise.resolve(jwt);
+      return Promise.resolve({ jwt, id: queryResults[0]["id"] });
     }
     // Si las contraseñas no coinciden, se rechaza la promesa de login.
     else {
-      return Promise.reject();
+      return Promise.reject(new Error("Unauthorized"));
     }
   }
 }
