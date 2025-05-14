@@ -83,9 +83,8 @@ export const getProfilePicture = (req, res) => {
 }
 
 /**
- * Devuelve la foto de perfil referenciada con el id en los parámetros del endpoint.
- * @returns HTTP 200 con la foto de perfil solicitada si se encuentra,
- * HTTP 404 si no se encuentra la foto de perfil solicitada,
+ * Devuelve las notificaciones del usuario autenticado.
+ * @returns HTTP 200 con las notificaciones del usuario,
  * HTTP 500 si ocurre algún error al procesar la solicitud.
  */
 export const getNotifications = async (req, res) => {

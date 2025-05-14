@@ -16,7 +16,6 @@ export const validateLogin = async (req, res) => {
       .catch(_ => res.sendStatus(401));
   }
   catch (e) {
-    console.log(e);
     return res.sendStatus(500)
   }
 }
