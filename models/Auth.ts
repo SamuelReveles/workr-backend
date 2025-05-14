@@ -48,7 +48,7 @@ class Auth {
     // creando un jwt de autenticación.
     if (isPasswordEqualToStored(password, storedPassword)) {
       const jwt = generateJWT(queryResults[0]["id"], loginType);
-      return Promise.resolve({ jwt, id: queryResults[0]["id"] });
+      return Promise.resolve({ jwt, id: queryResults[0]["id"], loginType });
     }
     // Si las contraseñas no coinciden, se rechaza la promesa de login.
     else {
