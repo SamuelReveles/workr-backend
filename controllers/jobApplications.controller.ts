@@ -166,13 +166,13 @@ export const updateInterviewNotes = async (req, res) => {
  */
 export const registerNewHires = async (req, res) => {
   try {
-    const notFoundUsers = await JobApplication.registerNewHires(req.body.newHiresIds, req.companyId);
+    const errorIds = await JobApplication.registerNewHires(req.body.newHiresIds, req.companyId);
     
-    if (notFoundUsers.length == 0) {
+    if (errorIds.length == 0) {
       return res.sendStatus(201);
     }
     else {
-      return res.status(404).json({ notFoundUsers });
+      return res.status(400).json({ errorIds });
     }
   }
   catch (err) {

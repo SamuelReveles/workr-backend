@@ -171,12 +171,12 @@ exports.updateInterviewNotes = updateInterviewNotes;
  */
 const registerNewHires = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const notFoundUsers = yield JobApplication_1.default.registerNewHires(req.body.newHiresIds, req.companyId);
-        if (notFoundUsers.length == 0) {
+        const errorIds = yield JobApplication_1.default.registerNewHires(req.body.newHiresIds, req.companyId);
+        if (errorIds.length == 0) {
             return res.sendStatus(201);
         }
         else {
-            return res.status(404).json({ notFoundUsers });
+            return res.status(400).json({ errorIds });
         }
     }
     catch (err) {
