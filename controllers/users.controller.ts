@@ -97,3 +97,20 @@ export const getNotifications = async (req, res) => {
         return res.sendStatus(500);
     }
 }
+
+/**
+ * Elimina al usuario del registro de empleados de la empresa para
+ * la que trabajara.
+ * @returns HTTP 200 si la renuncia se procesa correctamente,
+ * HTTP 404 si no se encontrara el registro del usuario como empleado,
+ * HTTP 500 si ocurre un error al procesar la solicitud.
+ */
+export const quitJob = async (req, res) => {
+    try {
+        const correctRequest = await User.quitJob(req.userId);
+        return res.sendStatus(correctRequest ? 200 : 404);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+}

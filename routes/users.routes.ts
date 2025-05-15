@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNotifications, getProfilePicture, getUserProfile, registerUser, updateUserProfile } from "../controllers/users.controller";
+import { getNotifications, getProfilePicture, getUserProfile, quitJob, registerUser, updateUserProfile } from "../controllers/users.controller";
 import { register, updateProfile } from "../middlewares/users";
 import { verifyJWT } from "../middlewares/jwtAuth";
 import { verifyProfilePicture } from "../middlewares/profilePicture";
@@ -11,5 +11,6 @@ router.post("/update_profile", [ verifyJWT, verifyProfilePicture, ...updateProfi
 router.get("/profile/:userId", verifyJWT, getUserProfile);
 router.get("/profile_picture/:id", verifyJWT, getProfilePicture);
 router.get("/notifications", [verifyJWT], getNotifications);
+router.post("/quit_job", [verifyJWT], quitJob);
 
 export default router;
