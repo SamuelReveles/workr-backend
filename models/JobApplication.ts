@@ -314,8 +314,8 @@ class JobApplication {
     let query = "INSERT INTO Employees VALUES ";
     const params = [];
     for (const id of newHiresIds) {
-      query += "(?, ?, ?), ";
-      params.push(generateUUID(), id, companyId);
+      query += "(?, ?, ?, ?), ";
+      params.push(generateUUID(), id, companyId, getDateString());
     }
     query = query.substring(0, query.length - 2);
 
