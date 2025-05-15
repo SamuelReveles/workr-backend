@@ -229,17 +229,27 @@ class JobApplication {
                 map[row["id"]] = true;
                 return map;
             }, {});
-            // Se construye un array con cada id proporcionado que no fue
-            // validado por medio de la consulta del mapa de ids validados.
-            const notFounds = [];
+            // Se busca si un id corresponde a un usuario que ya haya sido
+            // contratado por otra empresa y se agregan los resultados a un mapa.
+            const hiredUsersResults = yield (0, connection_1.executeQuery)("SELECT user_id FROM Employees WHERE user_id IN (?)", [newHiresIds]);
+            const hiredUsersMap = hiredUsersResults.reduce((map, row) => {
+                map[row["user_id"]] = true;
+                return map;
+            }, {});
+            // Se construye un array con cada id no encontrado o correspondiente
+            // a un usuario ya contratado por una empresa para indicarlos como ids erróneos.
+            const errorIds = [];
             for (const id of newHiresIds) {
                 if (!usersMap[id]) {
-                    notFounds.push(`${id}`);
+                    errorIds.push({ id, error: "not found" });
+                }
+                else if (hiredUsersMap[id]) {
+                    errorIds.push({ id, error: "already hired" });
                 }
             }
             // Si el array de ids no validados tiene contenido, se retorna.
-            if (notFounds.length > 0) {
-                return notFounds;
+            if (errorIds.length > 0) {
+                return errorIds;
             }
             // Se genera y ejecuta la query para insertar nuevos empleados a la empresa.
             const { query, params } = this.generateEmployeesInsertionQuery(newHiresIds, companyId);
@@ -259,8 +269,8 @@ class JobApplication {
         let query = "INSERT INTO Employees VALUES ";
         const params = [];
         for (const id of newHiresIds) {
-            query += "(?, ?, ?), ";
-            params.push((0, uuid_1.generateUUID)(), id, companyId);
+            query += "(?, ?, ?, ?), ";
+            params.push((0, uuid_1.generateUUID)(), id, companyId, (0, datetime_1.getDateString)());
         }
         query = query.substring(0, query.length - 2);
         return { query, params };

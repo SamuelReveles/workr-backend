@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNotifications = exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
+exports.quitJob = exports.getNotifications = exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
 const notifications_1 = require("../database/notifications");
 const User_1 = __importDefault(require("../models/User"));
 const UserProfile_1 = __importDefault(require("../models/UserProfile"));
@@ -109,4 +109,21 @@ const getNotifications = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getNotifications = getNotifications;
+/**
+ * Elimina al usuario del registro de empleados de la empresa para
+ * la que trabajara.
+ * @returns HTTP 200 si la renuncia se procesa correctamente,
+ * HTTP 404 si no se encontrara el registro del usuario como empleado,
+ * HTTP 500 si ocurre un error al procesar la solicitud.
+ */
+const quitJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const correctRequest = yield User_1.default.quitJob(req.userId);
+        return res.sendStatus(correctRequest ? 200 : 404);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+});
+exports.quitJob = quitJob;
 //# sourceMappingURL=users.controller.js.map

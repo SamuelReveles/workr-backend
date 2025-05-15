@@ -50,6 +50,28 @@ class User {
             return id;
         });
     }
+    /**
+     * Borra al usuario referenciado de los registros de empleado
+     * que lo relacionan con una empresa.
+     * @param userId Id del usuario que renuncia.
+     * @returns True si la renuncia se procesa correctamente,
+     * False si no se encontró el registro del empleado para borrarlo.
+     */
+    static quitJob(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const employeeRecordResults = yield (0, connection_1.executeQuery)("SELECT id FROM Employees WHERE user_id = ?", userId);
+            // Si no se encuentra el registro de empleado se devuelve False.
+            if (employeeRecordResults.length == 0) {
+                return false;
+            }
+            // Si se encuentra el registro, se borra para la renuncia
+            // y se devuelve True.
+            else {
+                yield (0, connection_1.executeQuery)("DELETE FROM Employees WHERE user_id = ?", userId);
+                return true;
+            }
+        });
+    }
 }
 exports.default = User;
 //# sourceMappingURL=User.js.map
