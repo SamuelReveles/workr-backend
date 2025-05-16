@@ -65,7 +65,7 @@ class Server {
         // File upload
         this.app.use(fileUpload({
             useTempFiles: true,
-            tempFileDir: `${__dirname}/../file_uploads_tmp/`
+            tempFileDir: `${__dirname}/../file_uploads/tmp/`
         }));
     }
     
