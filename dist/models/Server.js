@@ -56,7 +56,7 @@ class Server {
         // File upload
         this.app.use((0, express_fileupload_1.default)({
             useTempFiles: true,
-            tempFileDir: `${__dirname}/../file_uploads_tmp/`
+            tempFileDir: `${__dirname}/../file_uploads/tmp/`
         }));
     }
     routes() {
