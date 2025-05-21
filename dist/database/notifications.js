@@ -26,7 +26,16 @@ exports.databaseNotificationsHandler = databaseNotificationsHandler;
  * @param userId - El id del usuario al que se le van a obtener las notificaciones
  */
 const getUserNotifications = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const notifications = yield (0, connection_1.executeQuery)(`SELECT * FROM Notifications WHERE user_id = ?`, [userId]);
+    const notifications = yield (0, connection_1.executeQuery)(`
+        SELECT 
+            id,
+            user_id as userId,
+            title,
+            description,
+            is_read as isRead,
+            DATE(creation_date) as creationDate
+        FROM Notifications WHERE user_id = ?;
+        `, [userId]);
     return notifications;
 });
 exports.getUserNotifications = getUserNotifications;

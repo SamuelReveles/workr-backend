@@ -18,8 +18,16 @@ export const databaseNotificationsHandler = async (userId, title, description) =
  * @param userId - El id del usuario al que se le van a obtener las notificaciones
  */
 export const getUserNotifications = async (userId) => {
-    const notifications = await executeQuery(
-        `SELECT * FROM Notifications WHERE user_id = ?`,
+    const notifications = await executeQuery(`
+        SELECT 
+            id,
+            user_id as userId,
+            title,
+            description,
+            is_read as isRead,
+            DATE(creation_date) as creationDate
+        FROM Notifications WHERE user_id = ?;
+        `,
         [userId]
     );
     return notifications;
