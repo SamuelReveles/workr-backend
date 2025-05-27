@@ -9,6 +9,7 @@ import userRouter from '../routes/users.routes';
 import companyRouter from '../routes/companies.routes';
 import vacanciesRouter from "../routes/vacancies.routes";
 import jobApplicationsRouter from "../routes/jobApplications.routes";
+import callsRouter from "../routes/calls.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ class Server {
     private companiesPath: string;
     private vacanciesPath: string;
     private jobApplicationsPath: string;
+    private callsPath: string;
 
     constructor() {
         // Use express framework
@@ -48,6 +50,7 @@ class Server {
         this.companiesPath = '/api/companies';
         this.vacanciesPath = "/api/vacancies";
         this.jobApplicationsPath = "/api/job_applications";
+        this.callsPath = "/api/calls";
         
         // Middlewares
         this.middlewares();
@@ -76,6 +79,7 @@ class Server {
         this.app.use(this.companiesPath, companyRouter);
         this.app.use(this.vacanciesPath, vacanciesRouter);
         this.app.use(this.jobApplicationsPath, jobApplicationsRouter);
+        this.app.use(this.callsPath, callsRouter);
         // this.app.use(this.adminPath, administradorRoutes);
     }
 

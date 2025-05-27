@@ -14,6 +14,7 @@ const users_routes_1 = __importDefault(require("../routes/users.routes"));
 const companies_routes_1 = __importDefault(require("../routes/companies.routes"));
 const vacancies_routes_1 = __importDefault(require("../routes/vacancies.routes"));
 const jobApplications_routes_1 = __importDefault(require("../routes/jobApplications.routes"));
+const calls_routes_1 = __importDefault(require("../routes/calls.routes"));
 dotenv_1.default.config();
 class Server {
     constructor() {
@@ -41,6 +42,7 @@ class Server {
         this.companiesPath = '/api/companies';
         this.vacanciesPath = "/api/vacancies";
         this.jobApplicationsPath = "/api/job_applications";
+        this.callsPath = "/api/calls";
         // Middlewares
         this.middlewares();
         // App routes
@@ -66,6 +68,7 @@ class Server {
         this.app.use(this.companiesPath, companies_routes_1.default);
         this.app.use(this.vacanciesPath, vacancies_routes_1.default);
         this.app.use(this.jobApplicationsPath, jobApplications_routes_1.default);
+        this.app.use(this.callsPath, calls_routes_1.default);
         // this.app.use(this.adminPath, administradorRoutes);
     }
     sockets() {
