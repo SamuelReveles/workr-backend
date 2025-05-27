@@ -248,13 +248,14 @@ class JobApplication {
 
   /**
    * Agrega una serie de empleados recién contratados a la BD.
+   * @param position Nombre de la posición para la que se contrata.
    * @param newHiresIds Arreglo con los id de usuario de los aspirantes contratados.
    * @param companyId Id de la empresa que contrata.
    * @returns Un arreglo que contiene cualquier posible usuario no encontrado,
    * si es que alguno no se encontró, o un arreglo vacío en caso de que todos los
    * contratados se hayan registrado.
    */
-  public static async registerNewHires(newHiresIds: string[], companyId: string) {
+  public static async registerNewHires(position: string, newHiresIds: string[], companyId: string) {
     // Se busca información con todos los ids de aspirantes recién contratados.
     const usersResults = await executeQuery(
       "SELECT id FROM Users WHERE id IN (?)",
@@ -296,7 +297,7 @@ class JobApplication {
     }
 
     // Se genera y ejecuta la query para insertar nuevos empleados a la empresa.
-    const { query, params } = this.generateEmployeesInsertionQuery(newHiresIds, companyId);
+    const { query, params } = this.generateEmployeesInsertionQuery(position, newHiresIds, companyId);
     await executeQuery(query, params);
 
     // Se retorna un arreglo vacío indicando que no hay
@@ -306,16 +307,17 @@ class JobApplication {
 
   /**
    * Genera una query para registrar a todos los nuevos contratados de una empresa.
+   * @param position Nombre de la posición para la que se contrata.
    * @param newHiresIds Ids de usuario de todos los nuevos contratados.
    * @param companyId Id de la emprsa que contrata.
    * @returns Query y parámetros para la inserción de los nuevos empleados.
    */
-  private static generateEmployeesInsertionQuery(newHiresIds: string[], companyId) {
+  private static generateEmployeesInsertionQuery(position: string, newHiresIds: string[], companyId) {
     let query = "INSERT INTO Employees VALUES ";
     const params = [];
     for (const id of newHiresIds) {
-      query += "(?, ?, ?, ?), ";
-      params.push(generateUUID(), id, companyId, getDateString());
+      query += "(?, ?, ?, ?, ?), ";
+      params.push(generateUUID(), id, companyId, getDateString(), position);
     }
     query = query.substring(0, query.length - 2);
 

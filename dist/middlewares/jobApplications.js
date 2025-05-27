@@ -44,6 +44,7 @@ exports.updatedInterviewNotes = [
     validator_1.validator,
 ];
 exports.newHires = [
+    (0, express_validator_1.body)("position").notEmpty().isString().withMessage(messageFor("position")),
     (0, express_validator_1.body)("newHiresIds").custom(customValidators_1.newHiresValidator),
     validator_1.validator,
 ];
