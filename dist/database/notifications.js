@@ -9,8 +9,46 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.readNotifications = exports.getUserNotifications = exports.databaseNotificationsHandler = void 0;
+exports.readNotifications = exports.getUserNotifications = exports.databaseNotificationsHandler = exports.notificationsMapper = void 0;
 const connection_1 = require("./connection");
+/**
+ * Formatea una notificación de la base de datos
+ * @param notification - La notificación a formatear
+ */
+const notificationsMapper = (notification) => {
+    const formatRelativeDate = (dateString) => {
+        if (!dateString)
+            return '';
+        const notifDate = new Date(dateString);
+        const today = new Date();
+        notifDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        const diffMs = today.getTime() - notifDate.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays === 0)
+            return "Hoy";
+        if (diffDays === 1)
+            return "Ayer";
+        if (diffDays > 1 && diffDays < 5)
+            return `Hace ${diffDays} días`;
+        return notifDate.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+    return {
+        id: notification.id || '',
+        userId: notification.userId || '',
+        title: notification.title || '',
+        description: notification.description || '',
+        isRead: typeof notification.isRead === 'boolean'
+            ? notification.isRead
+            : Boolean(notification.isRead) || false,
+        creationDate: formatRelativeDate(notification.creationDate)
+    };
+};
+exports.notificationsMapper = notificationsMapper;
 /**
  * Crear una notificación de base de datos
  * @param userId - EL id del usuario al que se le va a enviar la notificación
@@ -36,7 +74,7 @@ const getUserNotifications = (userId) => __awaiter(void 0, void 0, void 0, funct
             DATE(creation_date) as creationDate
         FROM Notifications WHERE user_id = ?;
         `, [userId]);
-    return notifications;
+    return notifications.map(exports.notificationsMapper);
 });
 exports.getUserNotifications = getUserNotifications;
 /**
