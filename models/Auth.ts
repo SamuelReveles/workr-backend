@@ -19,6 +19,7 @@ class Auth {
     );
     let loginType = "";
     let virtualOfficeCompanyId = "";
+    let virtualOfficeCallUserId = -1;
 
     // Si el email coincide con un registro de usuario, se entiende un tipo de login de usuario.
     if (queryResults.length != 0) {
@@ -28,11 +29,12 @@ class Auth {
       // si es así se recupera el id de la empresa para acceder a la oficina virtual,
       // si no, se devolverá una cadena vacía por defecto en el campo de referencia.
       let employeeCompanyResults = await executeQuery(
-        "SELECT company_id FROM Employees WHERE user_id = ?",
+        "SELECT company_id, call_user_id FROM Employees WHERE user_id = ?",
         queryResults[0]["id"]
       );
       if (employeeCompanyResults.length > 0) {
         virtualOfficeCompanyId = employeeCompanyResults[0]["company_id"];
+        virtualOfficeCallUserId = employeeCompanyResults[0]["call_user_id"];
       }
     }
     else {
@@ -64,7 +66,7 @@ class Auth {
     // creando un jwt de autenticación.
     if (isPasswordEqualToStored(password, storedPassword)) {
       const jwt = generateJWT(queryResults[0]["id"], loginType);
-      return Promise.resolve({ jwt, id: queryResults[0]["id"], loginType, virtualOfficeCompanyId });
+      return Promise.resolve({ jwt, id: queryResults[0]["id"], loginType, virtualOfficeCompanyId, virtualOfficeCallUserId });
     }
     // Si las contraseñas no coinciden, se rechaza la promesa de login.
     else {
