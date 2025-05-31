@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto"
+import { Buffer } from "node:buffer";
 
 /**
  * Crea un hash de la contraseña indicada.
@@ -26,6 +27,32 @@ export function isPasswordEqualToStored(inputPassword: string, storedPassword: s
   const storedPasswordBuffer = Buffer.from(storedPasswordHash, "hex");
   const inputPasswordBuffer = createHashBuffer(inputPassword, salt);
   return timingSafeEqual(storedPasswordBuffer, inputPasswordBuffer);
+}
+
+/**
+ * Verifica una API key provista usando un método seguro
+ * que evita mostrar información de temporización.
+ * @param inputKey Key a contrastar con la API key real.
+ * @returns True si la key corresponde con la API key real, False de otro modo.
+ */
+export function isAPIKeyValid(inputKey: string) {
+  const apiKey = process.env.API_KEY;
+  if (apiKey === undefined || apiKey === "") {
+    throw new Error("Incorrecta configuración de API key");
+  }
+
+  // Se generan buffers para poder comparar ambas keys de forma segura.
+  const APIKeyBuffer = Buffer.from(apiKey, "hex");
+  const inputKeyBuffer = Buffer.from(inputKey, "hex");
+
+  // Se verifica que ambas longitudes de buffer sean iguales
+  // para poder usar el método de comparación adecuadamente.
+  if (APIKeyBuffer.length !== inputKeyBuffer.length) {
+    return false;
+  }
+
+  // Se comparan los buffers para validar la key en un método seguro ante temporización.
+  return timingSafeEqual(APIKeyBuffer, inputKeyBuffer);
 }
 
 /**

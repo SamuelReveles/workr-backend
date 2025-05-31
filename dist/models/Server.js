@@ -15,6 +15,7 @@ const companies_routes_1 = __importDefault(require("../routes/companies.routes")
 const vacancies_routes_1 = __importDefault(require("../routes/vacancies.routes"));
 const jobApplications_routes_1 = __importDefault(require("../routes/jobApplications.routes"));
 const calls_routes_1 = __importDefault(require("../routes/calls.routes"));
+const apiKeyAuth_1 = require("../middlewares/apiKeyAuth");
 dotenv_1.default.config();
 class Server {
     constructor() {
@@ -52,9 +53,16 @@ class Server {
     }
     middlewares() {
         // CORS
-        this.app.use((0, cors_1.default)());
+        // Se establecen los headers necesarios para contenido y autorización,
+        // se establecen los únicos métodos usados en los endpoints.
+        this.app.use((0, cors_1.default)({
+            allowedHeaders: ["Content-Type", "Authorization", "Api-Key"],
+            methods: ["GET", "POST"],
+        }));
         // Read and parse body
         this.app.use(express_1.default.json());
+        // Verificación de autorización.
+        this.app.use(apiKeyAuth_1.verifyAPIKey);
         // File upload
         this.app.use((0, express_fileupload_1.default)({
             useTempFiles: true,

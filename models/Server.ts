@@ -10,6 +10,7 @@ import companyRouter from '../routes/companies.routes';
 import vacanciesRouter from "../routes/vacancies.routes";
 import jobApplicationsRouter from "../routes/jobApplications.routes";
 import callsRouter from "../routes/calls.routes";
+import { verifyAPIKey } from '../middlewares/apiKeyAuth';
 
 dotenv.config();
 
@@ -62,9 +63,16 @@ class Server {
 
     private middlewares(): void {
         // CORS
-        this.app.use(cors());
+        // Se establecen los headers necesarios para contenido y autorización,
+        // se establecen los únicos métodos usados en los endpoints.
+        this.app.use(cors({
+            allowedHeaders: ["Content-Type", "Authorization", "Api-Key"],
+            methods: ["GET", "POST"],
+        }));
         // Read and parse body
         this.app.use(express.json());
+        // Verificación de autorización.
+        this.app.use(verifyAPIKey);
         // File upload
         this.app.use(fileUpload({
             useTempFiles: true,
