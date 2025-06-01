@@ -59,7 +59,7 @@ class User {
      */
     static quitJob(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const employeeRecordResults = yield (0, connection_1.executeQuery)("SELECT id FROM Employees WHERE user_id = ?", userId);
+            const employeeRecordResults = yield (0, connection_1.executeQuery)("SELECT id FROM Employees WHERE user_id = ? AND is_active = TRUE", userId);
             // Si no se encuentra el registro de empleado se devuelve False.
             if (employeeRecordResults.length == 0) {
                 return false;
@@ -67,7 +67,9 @@ class User {
             // Si se encuentra el registro, se borra para la renuncia
             // y se devuelve True.
             else {
-                yield (0, connection_1.executeQuery)("DELETE FROM Employees WHERE user_id = ?", userId);
+                yield (0, connection_1.executeQuery)(
+                // "DELETE FROM Employees WHERE user_id = ?",
+                "UPDATE Employees SET is_active = FALSE WHERE user_id = ?", userId);
                 return true;
             }
         });

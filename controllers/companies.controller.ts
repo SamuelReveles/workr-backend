@@ -1,4 +1,10 @@
-import Company from "../models/Company"
+import Company from '../models/Company';
+import dotenv from 'dotenv';
+import Stripe from 'stripe';
+
+dotenv.config();
+
+const stripe = new Stripe(process.env.STRIPE_API_SECRET_KEY);
 
 /**
  * Registra una empresa tomando los datos de la solicitud.
@@ -54,17 +60,17 @@ export const updateCompanyProfile = async (req, res) => {
  */
 export const getCompanyProfile = async (req, res) => {
   try {
-      const profile = await Company.getProfile(req.params.companyId);
-      
-      if (profile == null) {
-          return res.sendStatus(404);
-      }
-      else {
-          return res.status(200).json(profile);
-      }
+    const profile = await Company.getProfile(req.params.companyId);
+
+    if (profile == null) {
+      return res.sendStatus(404);
+    }
+    else {
+      return res.status(200).json(profile);
+    }
   }
-  catch(err) {
-      return res.sendStatus(500);
+  catch (err) {
+    return res.sendStatus(500);
   }
 }
 
@@ -76,16 +82,101 @@ export const getCompanyProfile = async (req, res) => {
  */
 export const getProfilePicture = (req, res) => {
   try {
-      const profilePicturePath = Company.getProfilePicturePath(req.params.id);
+    const profilePicturePath = Company.getProfilePicturePath(req.params.id);
 
-      if (profilePicturePath == null) {
-          return res.sendStatus(404);
-      }
-      else {
-          return res.status(200).sendFile(profilePicturePath);
-      }
+    if (profilePicturePath == null) {
+      return res.sendStatus(404);
+    }
+    else {
+      return res.status(200).sendFile(profilePicturePath);
+    }
   }
   catch (err) {
-      return res.sendStatus(500);
+    return res.sendStatus(500);
   }
 }
+
+/**
+ * Devuelve toda la información que se ve en el "Carrito" para pagar la mensualidad por parte de una empresa.
+ * @returns HTTP 200 con la información,
+ * HTTP 500 si ocurre algún error al procesar la solicitud.
+ */
+export const getCompanyPayInfo = async (req, res) => {
+  try {
+    const companyInfo = await Company.getProfile(req.companyId);
+    const companyPayInfo = await Company.getPayInfo(req.companyId);
+
+    return res.status(200).json({
+      ...companyInfo,
+      companyPayInfo
+    })
+  }
+  catch (err) {
+    return res.sendStatus(500);
+  }
+}
+
+/**
+ * Crea un PaymentIntent de Stripe para el pago de la mensualidad de la empresa.
+ * @returns HTTP 200 con el clientSecret del PaymentIntent,
+ * HTTP 500 si ocurre algún error.
+ */
+export const createPaymentIntent = async (req, res) => {
+  try {
+    const companyId = req.companyId;
+
+    const companyPayInfo = await Company.getPayInfo(companyId);
+    const amount = companyPayInfo.pricePerUser * companyPayInfo.employeesCount * 100;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'mxn',
+      payment_method_types: ['card'],
+      metadata: { companyId }
+    });
+
+    return res.status(200).json({
+      clientSecret: paymentIntent.client_secret
+    });
+  } catch (err) {
+    console.error('Error creating payment intent:', err);
+    return res.sendStatus(500);
+  }
+};
+
+/**
+ * Maneja los webhooks de Stripe para procesar eventos de pago.
+ * @returns HTTP 200 si el evento se procesa correctamente,
+ * HTTP 400 si la firma del webhook es inválida,
+ * HTTP 500 si ocurre algún error.
+ */
+export const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const companyId = paymentIntent.metadata.companyId;
+
+      const payment = {
+        companyId,
+        paymentIntentId: paymentIntent.id,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status,
+        createdAt: new Date(event.created * 1000),
+      };
+
+      await Company.savePayment(payment);
+      console.log(`Payment saved for company ${companyId}:`, payment);
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+  }
+};
