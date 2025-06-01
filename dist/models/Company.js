@@ -123,6 +123,34 @@ class Company {
         });
     }
     /**
+     * Obtiene la información de pago de la empresa.
+     * @param companyId Id de la empresa.
+     * @returns Conjunto de información de pago.
+     */
+    static getPayInfo(companyId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const date = new Date();
+            const paymentInfo = yield (0, connection_1.executeQuery)(`
+      SELECT 
+          COUNT(DISTINCT e.user_id) AS employees,
+          c.value AS pricePerUser
+      FROM Employees e
+      CROSS JOIN (SELECT value FROM Constants WHERE name = 'PRICE_PER_USER') c
+      WHERE e.company_id = ? AND (e.is_active = 1 OR e.accepted_date > ?);
+    `, [companyId, date]);
+            return { pricePerUser: paymentInfo[0].pricePerUser || 0, employeesCount: paymentInfo[0].employees || 0 };
+        });
+    }
+    /**
+     * Guarda la información de pago de una empresa
+     * @param payment Objeto de pago de la empresa
+     */
+    static savePayment(payment) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield (0, connection_1.executeQuery)(`INSERT INTO Stripe_Payments SET ?;`, [payment]);
+        });
+    }
+    /**
      * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
      * @param id Identificador de la foto cuya ruta se busca.
      * @returns Ruta absoluta para la foto de perfil si existe,

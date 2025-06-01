@@ -28,7 +28,7 @@ class Auth {
       // si es así se recupera el id de la empresa para acceder a la oficina virtual,
       // si no, se devolverá una cadena vacía por defecto en el campo de referencia.
       let employeeCompanyResults = await executeQuery(
-        "SELECT company_id FROM Employees WHERE user_id = ?",
+        "SELECT company_id FROM Employees WHERE user_id = ? AND is_active = TRUE",
         queryResults[0]["id"]
       );
       if (employeeCompanyResults.length > 0) {

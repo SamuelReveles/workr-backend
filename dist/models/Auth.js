@@ -32,7 +32,7 @@ class Auth {
                 // Se determina si el usuario trabaja para una empresa,
                 // si es así se recupera el id de la empresa para acceder a la oficina virtual,
                 // si no, se devolverá una cadena vacía por defecto en el campo de referencia.
-                let employeeCompanyResults = yield (0, connection_1.executeQuery)("SELECT company_id FROM Employees WHERE user_id = ?", queryResults[0]["id"]);
+                let employeeCompanyResults = yield (0, connection_1.executeQuery)("SELECT company_id FROM Employees WHERE user_id = ? AND is_active = TRUE", queryResults[0]["id"]);
                 if (employeeCompanyResults.length > 0) {
                     virtualOfficeCompanyId = employeeCompanyResults[0]["company_id"];
                 }

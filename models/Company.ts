@@ -137,6 +137,33 @@ class Company {
   }
 
   /**
+   * Obtiene la información de pago de la empresa.
+   * @param companyId Id de la empresa.
+   * @returns Conjunto de información de pago.
+   */
+  public static async getPayInfo(companyId: string) {
+    const date = new Date();
+    const paymentInfo = await executeQuery(`
+      SELECT 
+          COUNT(DISTINCT e.user_id) AS employees,
+          c.value AS pricePerUser
+      FROM Employees e
+      CROSS JOIN (SELECT value FROM Constants WHERE name = 'PRICE_PER_USER') c
+      WHERE e.company_id = ? AND (e.is_active = 1 OR e.accepted_date > ?);
+    `, [companyId, date]);
+
+    return { pricePerUser: paymentInfo[0].pricePerUser || 0, employeesCount: paymentInfo[0].employees || 0 };
+  }
+
+  /**
+   * Guarda la información de pago de una empresa
+   * @param payment Objeto de pago de la empresa
+   */
+  public static async savePayment(payment: any) {
+    return await executeQuery(`INSERT INTO Stripe_Payments SET ?;`, [payment]);
+  }
+
+  /**
    * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
    * @param id Identificador de la foto cuya ruta se busca.
    * @returns Ruta absoluta para la foto de perfil si existe,

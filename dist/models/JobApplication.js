@@ -231,7 +231,7 @@ class JobApplication {
             }, {});
             // Se busca si un id corresponde a un usuario que ya haya sido
             // contratado por otra empresa y se agregan los resultados a un mapa.
-            const hiredUsersResults = yield (0, connection_1.executeQuery)("SELECT user_id FROM Employees WHERE user_id IN (?)", [newHiresIds]);
+            const hiredUsersResults = yield (0, connection_1.executeQuery)("SELECT user_id FROM Employees WHERE user_id IN (?) AND is_active = TRUE", [newHiresIds]);
             const hiredUsersMap = hiredUsersResults.reduce((map, row) => {
                 map[row["user_id"]] = true;
                 return map;

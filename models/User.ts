@@ -55,7 +55,7 @@ class User {
    */
   public static async quitJob(userId) {
     const employeeRecordResults = await executeQuery(
-      "SELECT id FROM Employees WHERE user_id = ?",
+      "SELECT id FROM Employees WHERE user_id = ? AND is_active = TRUE",
       userId
     );
 
@@ -67,7 +67,8 @@ class User {
     // y se devuelve True.
     else {
       await executeQuery(
-        "DELETE FROM Employees WHERE user_id = ?",
+        // "DELETE FROM Employees WHERE user_id = ?",
+        "UPDATE Employees SET is_active = FALSE WHERE user_id = ?",
         userId
       );
       return true;
