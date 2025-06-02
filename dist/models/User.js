@@ -74,6 +74,39 @@ class User {
             }
         });
     }
+    /**
+     * Cierra la sesión de trabajo referenciada.
+     * @param workSessionId Id de la sesión a cerrar.
+     * @returns True si el cierre se realiza correctamente, false si no
+     * se encuentra la sesión.
+     */
+    static checkoutWorkSession(workSessionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Se busca información de la sesión.
+            const sessionResults = yield (0, connection_1.executeQuery)("SELECT start_time FROM Work_sessions WHERE id = ?", [workSessionId]);
+            // Si la búsqueda no arroja resultados significa que la sesión no existe,
+            // por lo tanto se devuelve false.
+            if (sessionResults.length === 0) {
+                return false;
+            }
+            // Se obtienen los datos completos de tiempos.
+            const todayString = (0, datetime_1.getDateString)();
+            const startTimeString = sessionResults[0]["start_time"];
+            const endTimeString = (0, datetime_1.getTimeString)();
+            // Se calcula la diferencia de minutos entre el inicio y término de la sesión.
+            const startTime = new Date(`${todayString}T${startTimeString}Z`);
+            const endTime = new Date(`${todayString}T${endTimeString}Z`);
+            const minutesDifference = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+            // Se actualiza el registro de la sesión con los datos de cierre.
+            const checkoutValues = {
+                end_time: endTimeString,
+                minutes: minutesDifference
+            };
+            yield (0, connection_1.executeQuery)("UPDATE Work_sessions SET ? WHERE id = ?", [checkoutValues, workSessionId]);
+            // Se retorna true para indicar update correcto.
+            return true;
+        });
+    }
 }
 exports.default = User;
 //# sourceMappingURL=User.js.map
