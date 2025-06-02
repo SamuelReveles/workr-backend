@@ -20,6 +20,7 @@ const datetime_1 = require("../helpers/datetime");
 const ParameterizedQuery_1 = __importDefault(require("../database/ParameterizedQuery"));
 const queryGenerators_1 = require("../database/queryGenerators");
 const charts_1 = require("../helpers/charts");
+const cloudinary_1 = require("../helpers/cloudinary");
 class Company {
     /**
      * Registra una nueva empresa tomando los datos de la solicitud.
@@ -56,21 +57,15 @@ class Company {
      */
     static updateProfile(companyId, profilePictureFile, body) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
-            const oldProfilePictureId = (yield (0, connection_1.executeQuery)("SELECT profile_picture FROM Companies WHERE id = ?", [companyId]))[0]["profile_picture"];
-            // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-            const newProfilePictureId = yield (0, profilePictures_1.saveNewProfilePicture)(profilePictureFile, this.profilePicturesDirectory);
-            // Se generan todas las queries para actualizar la información de perfil de la empresa.
-            const updateTransactionQueries = this.generateUpdateTransactionQueries(companyId, newProfilePictureId, body);
-            // Transacción principal de cambios.
             try {
+                // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
+                const oldProfilePictureURL = (yield (0, connection_1.executeQuery)("SELECT profile_picture FROM Companies WHERE id = ?", [companyId]))[0]["profile_picture"];
+                let profilePictureURL = yield (oldProfilePictureURL ? (0, cloudinary_1.replaceImage)(oldProfilePictureURL, profilePictureFile) : (0, cloudinary_1.createImage)(profilePictureFile));
+                const updateTransactionQueries = this.generateUpdateTransactionQueries(companyId, profilePictureURL, body);
                 yield (0, connection_1.executeTransaction)(updateTransactionQueries);
-                // Si la transacción se completa correctamente, se borrará la imagen de perfil previa.
-                (0, profilePictures_1.deleteProfilePictureFile)(oldProfilePictureId, this.profilePicturesDirectory);
             }
-            // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
             catch (err) {
-                (0, profilePictures_1.deleteProfilePictureFile)(newProfilePictureId, this.profilePicturesDirectory);
+                console.log(err);
                 throw err;
             }
         });
