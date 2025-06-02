@@ -2,6 +2,8 @@ import { RowDataPacket } from "mysql2";
 import { executeQuery } from "../database/connection";
 import { isPasswordEqualToStored } from "../helpers/encryption";
 import { generateJWT } from "../helpers/jwt";
+import { generateUUID } from "../helpers/uuid";
+import { getDateString, getTimeString } from "../helpers/datetime";
 
 class Auth {
   /**
@@ -18,6 +20,7 @@ class Auth {
       [email]
     );
     let loginType = "";
+    let employeeId = "";
     let virtualOfficeCompanyId = "";
 
     // Si el email coincide con un registro de usuario, se entiende un tipo de login de usuario.
@@ -27,12 +30,13 @@ class Auth {
       // Se determina si el usuario trabaja para una empresa,
       // si es así se recupera el id de la empresa para acceder a la oficina virtual,
       // si no, se devolverá una cadena vacía por defecto en el campo de referencia.
-      let employeeCompanyResults = await executeQuery(
-        "SELECT company_id FROM Employees WHERE user_id = ? AND is_active = TRUE",
+      let employeeResults = await executeQuery(
+        "SELECT id, company_id FROM Employees WHERE user_id = ? AND is_active = TRUE",
         queryResults[0]["id"]
       );
-      if (employeeCompanyResults.length > 0) {
-        virtualOfficeCompanyId = employeeCompanyResults[0]["company_id"];
+      if (employeeResults.length > 0) {
+        employeeId = employeeResults[0]["id"];
+        virtualOfficeCompanyId = employeeResults[0]["company_id"];
       }
     }
     else {
@@ -63,8 +67,21 @@ class Auth {
     // Si la contraseña coincide con la almacenada, se resuelve la promesa de login
     // creando un jwt de autenticación.
     if (isPasswordEqualToStored(password, storedPassword)) {
+      // Si el inicio de sesión es de un empleado, se registra el inicio de su sesión de trabajo.
+      let workSessionId = "";
+      if (employeeId !== "") {
+        workSessionId = generateUUID();
+        const workSessionData = {
+          id: workSessionId,
+          employee_id: employeeId,
+          date: getDateString(),
+          start_time: getTimeString(),
+        };
+        await executeQuery("INSERT INTO Work_sessions SET ?", [workSessionData]);
+      }
+
       const jwt = generateJWT(queryResults[0]["id"], loginType);
-      return Promise.resolve({ jwt, id: queryResults[0]["id"], loginType, virtualOfficeCompanyId });
+      return Promise.resolve({ jwt, id: queryResults[0]["id"], loginType, virtualOfficeCompanyId, workSessionId });
     }
     // Si las contraseñas no coinciden, se rechaza la promesa de login.
     else {

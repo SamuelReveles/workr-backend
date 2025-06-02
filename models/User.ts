@@ -1,7 +1,7 @@
 import { executeQuery } from "../database/connection";
 import { hashPassword } from "../helpers/encryption";
 import { generateUUID } from "../helpers/uuid";
-import { getDateString } from "../helpers/datetime";
+import { getDateString, getTimeString } from "../helpers/datetime";
 
 class User {
   /**
@@ -74,6 +74,49 @@ class User {
       return true;
     }
 
+  }
+
+  /**
+   * Cierra la sesión de trabajo referenciada.
+   * @param workSessionId Id de la sesión a cerrar.
+   * @returns True si el cierre se realiza correctamente, false si no
+   * se encuentra la sesión.
+   */
+  public static async checkoutWorkSession(workSessionId) {
+    // Se busca información de la sesión.
+    const sessionResults = await executeQuery(
+      "SELECT start_time FROM Work_sessions WHERE id = ?",
+      [ workSessionId ]
+    );
+
+    // Si la búsqueda no arroja resultados significa que la sesión no existe,
+    // por lo tanto se devuelve false.
+    if (sessionResults.length === 0) {
+      return false;
+    }
+
+    // Se obtienen los datos completos de tiempos.
+    const todayString = getDateString();
+    const startTimeString = sessionResults[0]["start_time"];
+    const endTimeString = getTimeString();
+
+    // Se calcula la diferencia de minutos entre el inicio y término de la sesión.
+    const startTime = new Date(`${todayString}T${startTimeString}Z`);
+    const endTime = new Date(`${todayString}T${endTimeString}Z`);
+    const minutesDifference = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+
+    // Se actualiza el registro de la sesión con los datos de cierre.
+    const checkoutValues = {
+      end_time: endTimeString,
+      minutes: minutesDifference
+    };
+    await executeQuery(
+      "UPDATE Work_sessions SET ? WHERE id = ?",
+      [ checkoutValues, workSessionId ]
+    );
+
+    // Se retorna true para indicar update correcto.
+    return true;
   }
 }
 

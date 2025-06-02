@@ -1,0 +1,17 @@
+meta {
+  name: Cerrar sesión de trabajo
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host}}/api/users/checkout_work_session
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "workSessionId": ""
+  }
+}

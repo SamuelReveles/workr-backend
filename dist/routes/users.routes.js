@@ -12,5 +12,6 @@ router.get("/profile/:userId", jwtAuth_1.verifyJWT, users_controller_1.getUserPr
 router.get("/profile_picture/:id", jwtAuth_1.verifyJWT, users_controller_1.getProfilePicture);
 router.get("/notifications", [jwtAuth_1.verifyJWT], users_controller_1.getNotifications);
 router.post("/quit_job", [jwtAuth_1.verifyJWT], users_controller_1.quitJob);
+router.post("/checkout_work_session", [jwtAuth_1.verifyJWT, ...users_1.workSession], users_controller_1.checkoutWorkSession);
 exports.default = router;
 //# sourceMappingURL=users.routes.js.map
