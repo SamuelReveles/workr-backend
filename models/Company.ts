@@ -8,6 +8,7 @@ import ParameterizedQuery from "../database/ParameterizedQuery";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 import { RowDataPacket } from "mysql2";
 import { DataPoint, formatChartData } from '../helpers/charts';
+import { createImage, replaceImage } from "../helpers/cloudinary";
 
 class Company {
   /**
@@ -46,33 +47,20 @@ class Company {
    * @param profilePictureFile Archivo con la nueva foto de perfil de la empresa.
    * @param body Conjunto de datos de perfil de la empresa.
    */
-  public static async updateProfile(companyId: string, profilePictureFile: UploadedFile, body) {
-    // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
-    const oldProfilePictureId = (await executeQuery(
-      "SELECT profile_picture FROM Companies WHERE id = ?",
-      [companyId]
-    ))[0]["profile_picture"];
-
-    // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-    const newProfilePictureId = await saveNewProfilePicture(
-      profilePictureFile, this.profilePicturesDirectory
-    );
-
-    // Se generan todas las queries para actualizar la información de perfil de la empresa.
-    const updateTransactionQueries = this.generateUpdateTransactionQueries(
-      companyId, newProfilePictureId, body
-    );
-
-    // Transacción principal de cambios.
+  public static async updateProfile(companyId: string, profilePictureFile: string, body) {
     try {
-      await executeTransaction(updateTransactionQueries);
+      // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
+      const oldProfilePictureURL = (await executeQuery(
+        "SELECT profile_picture FROM Companies WHERE id = ?",
+        [companyId]
+      ))[0]["profile_picture"];
 
-      // Si la transacción se completa correctamente, se borrará la imagen de perfil previa.
-      deleteProfilePictureFile(oldProfilePictureId, this.profilePicturesDirectory);
+      let profilePictureURL = await (oldProfilePictureURL ? replaceImage(oldProfilePictureURL, profilePictureFile) : createImage(profilePictureFile));
+      const updateTransactionQueries = this.generateUpdateTransactionQueries(companyId, profilePictureURL, body);
+      await executeTransaction(updateTransactionQueries);
     }
-    // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
     catch (err) {
-      deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
+      console.log(err)
       throw err;
     }
   }
