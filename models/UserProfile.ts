@@ -5,6 +5,7 @@ import { RowDataPacket } from "mysql2";
 import { getDateString } from "../helpers/datetime";
 import { deleteProfilePictureFile, resolveProfilePicturePath, saveNewProfilePicture } from "../helpers/profilePictures";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
+import { createImage, replaceImage } from "../helpers/cloudinary";
 
 class UserProfile {
   /**
@@ -15,33 +16,20 @@ class UserProfile {
    * @param profilePictureFile Nueva foto de perfil para el usuario.
    * @param body Conjunto de datos de perfil del usuario.
    */
-  public static async updateProfile(userId: string, profilePictureFile: UploadedFile, body) {
-    // Se recupera el id de imagen de perfil previa del usuario para su referencia.
-    const oldProfilePictureId = (await executeQuery(
-      "SELECT profile_picture FROM Users WHERE id = ?",
-      [userId]
-    ))[0]["profile_picture"];
-
-    // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-    const newProfilePictureId = await saveNewProfilePicture(profilePictureFile, this.profilePicturesDirectory);
-
-    // Se generan todas las queries que actualizan los datos del perfil de usuario
-    // con el id, la referencia de foto de perfil y los argumentos provistos en body.
-    const updateTransactionQueries = this.generateUpdateTransactionQueries(userId, newProfilePictureId, body);
-
-    // Transacción principal de cambios.
+  public static async updateProfile(userId: string, profilePictureFile: string, body) {    
     try {
+      // Se recupera el id de imagen de perfil previa del usuario para su referencia.
+      const oldProfilePictureURL = (await executeQuery(
+        "SELECT profile_picture FROM Users WHERE id = ?",
+        [userId]
+      ))[0]["profile_picture"];
+  
+      let profilePictureURL = await (oldProfilePictureURL ? replaceImage(oldProfilePictureURL, profilePictureFile) : createImage(profilePictureFile));
+      const updateTransactionQueries = this.generateUpdateTransactionQueries(userId, profilePictureURL, body);
       await executeTransaction(updateTransactionQueries);
-      
-      // Si la transacción se completa correctamente, se borrará la
-      // imagen de perfil previa (si existía).
-      if (oldProfilePictureId !== "") {
-        deleteProfilePictureFile(oldProfilePictureId, this.profilePicturesDirectory);
-      }
     }
-    // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
     catch (e) {
-      deleteProfilePictureFile(newProfilePictureId, this.profilePicturesDirectory);
+      console.log(e)
       throw e;
     }
   }
@@ -54,7 +42,7 @@ class UserProfile {
   public static async getProfile(userId: string) {
     // Información que presenta al usuario brevemente.
     const presentationData = await this.queryProfilePresentationData(userId);
-    
+
     // Si no se obtiene la información de presentación básica del usuario
     // significa que el perfil completo no existe.
     if (presentationData == null) {
@@ -103,9 +91,9 @@ class UserProfile {
     // Query para datos directos de usuario.
     parameterizedQueries.push(new ParameterizedQuery(
       "UPDATE Users SET profile_picture = ?, description = ?, last_update_date = ? WHERE id = ?",
-      [ newProfilePictureId, body.description, getDateString(), userId ]
+      [newProfilePictureId, body.description, getDateString(), userId]
     ));
-    
+
     // Queries para enlaces de contacto.
     parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_contact_links", "user_id", userId));
     parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
@@ -156,13 +144,13 @@ class UserProfile {
       "SELECT profile_picture, full_name, description, country FROM Users WHERE id = ?",
       [userId]
     );
-    
+
     if (queryResults.length == 0) {
       return null;
     }
     const dataRow = queryResults[0];
 
-    return { 
+    return {
       profilePicture: dataRow["profile_picture"],
       fullName: dataRow["full_name"],
       description: dataRow["description"],
@@ -182,7 +170,7 @@ class UserProfile {
     const params = [userId];
 
     const queryResults: RowDataPacket[] = await executeQuery(query, params);
-    
+
     // Se devuelven los registros después de quitarles información de identificadores.
     return queryResults.map(resultRow => {
       delete resultRow["id"];
