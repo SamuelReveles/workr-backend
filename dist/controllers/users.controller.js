@@ -42,6 +42,7 @@ exports.registerUser = registerUser;
  */
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req);
         yield UserProfile_1.default.updateProfile(req.userId, req.files.profile_picture, req.body);
         return res.sendStatus(200);
     }

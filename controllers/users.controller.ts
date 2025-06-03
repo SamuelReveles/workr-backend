@@ -29,6 +29,7 @@ export const registerUser = async (req, res) => {
  */
 export const updateUserProfile = async (req, res) => {
     try {
+        console.log(req)
         await UserProfile.updateProfile(req.userId, req.files.profile_picture, req.body);
         return res.sendStatus(200);
     }
