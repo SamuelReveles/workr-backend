@@ -88,16 +88,28 @@ class UserProfile {
         parameterizedQueries.push(new ParameterizedQuery_1.default("UPDATE Users SET profile_picture = ?, description = ?, last_update_date = ? WHERE id = ?", [newProfilePictureId, body.description, (0, datetime_1.getDateString)(), userId]));
         // Queries para enlaces de contacto.
         parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("User_contact_links", "user_id", userId));
-        parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "User_contact_links", userId, (r) => [r.platform, r.link]));
+        const contactLinksInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "User_contact_links", userId, (r) => [r.platform, r.link]);
+        if (contactLinksInsertionQuery != null) {
+            parameterizedQueries.push(contactLinksInsertionQuery);
+        }
         // Queries para registros de experiencia.
         parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("Experience_records", "user_id", userId));
-        parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.experience, "Experience_records", userId, (r) => [r.position, r.company, r.startDate, r.endDate, r.description]));
+        const experienceRecordsInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.experience, "Experience_records", userId, (r) => [r.position, r.company, r.startDate, r.endDate, r.description]);
+        if (experienceRecordsInsertionQuery != null) {
+            parameterizedQueries.push(experienceRecordsInsertionQuery);
+        }
         // Queries para habilidades.
         parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("User_skills", "user_id", userId));
-        parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.skills, "User_skills", userId, (r) => [r]));
+        const userSkillsInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.skills, "User_skills", userId, (r) => [r]);
+        if (userSkillsInsertionQuery != null) {
+            parameterizedQueries.push(userSkillsInsertionQuery);
+        }
         // Queries para registros de educación.
         parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("Education_records", "user_id", userId));
-        parameterizedQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.education, "Education_records", userId, (r) => [r.title, r.organization, r.startDate, r.endDate, r.description]));
+        const educationRecordsInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.education, "Education_records", userId, (r) => [r.title, r.organization, r.startDate, r.endDate, r.description]);
+        if (educationRecordsInsertionQuery != null) {
+            parameterizedQueries.push(educationRecordsInsertionQuery);
+        }
         return parameterizedQueries;
     }
     /**

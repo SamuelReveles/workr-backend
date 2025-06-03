@@ -45,7 +45,10 @@ class Vacancy {
             transactionQueries.push(new ParameterizedQuery_1.default("INSERT INTO Vacancies SET ?", [newVacancy]));
             // Se agrega una query generada para insertar todas las skills asociadas
             // a la vacante.
-            transactionQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.skills, "Vacancy_skills", vacancyId, skill => [skill]));
+            const vacancySkillsInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.skills, "Vacancy_skills", vacancyId, skill => [skill]);
+            if (vacancySkillsInsertionQuery != null) {
+                transactionQueries.push(vacancySkillsInsertionQuery);
+            }
             // Se ejecuta la transacción completa de cambios.
             yield (0, connection_1.executeTransaction)(transactionQueries);
         });

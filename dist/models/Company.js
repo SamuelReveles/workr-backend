@@ -226,7 +226,10 @@ class Company {
             companyId,
         ]));
         transactionQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("Company_contact_links", "company_id", companyId));
-        transactionQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "Company_contact_links", companyId, (r) => [r.platform, r.link]));
+        const companyContactLinksInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "Company_contact_links", companyId, (r) => [r.platform, r.link]);
+        if (companyContactLinksInsertionQuery != null) {
+            transactionQueries.push(companyContactLinksInsertionQuery);
+        }
         return transactionQueries;
     }
     /**
