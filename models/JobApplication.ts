@@ -271,7 +271,7 @@ class JobApplication {
     // Se busca si un id corresponde a un usuario que ya haya sido
     // contratado por otra empresa y se agregan los resultados a un mapa.
     const hiredUsersResults = await executeQuery(
-      "SELECT user_id FROM Employees WHERE user_id IN (?)",
+      "SELECT user_id FROM Employees WHERE user_id IN (?) AND is_active = TRUE",
       [ newHiresIds ]
     );
     const hiredUsersMap = (hiredUsersResults as RowDataPacket[]).reduce((map, row) => {

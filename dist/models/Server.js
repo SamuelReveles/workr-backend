@@ -64,9 +64,10 @@ class Server {
         // Verificación de autorización.
         this.app.use(apiKeyAuth_1.verifyAPIKey);
         // File upload
+        // Configuración básica para express-fileupload
         this.app.use((0, express_fileupload_1.default)({
             useTempFiles: true,
-            tempFileDir: `${__dirname}/../file_uploads/tmp/`
+            tempFileDir: '/tmp/' // Usar /tmp en Vercel
         }));
     }
     routes() {

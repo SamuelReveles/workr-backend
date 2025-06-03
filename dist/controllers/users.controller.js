@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.quitJob = exports.getNotifications = exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
+exports.checkoutWorkSession = exports.quitJob = exports.getNotifications = exports.getProfilePicture = exports.getUserProfile = exports.updateUserProfile = exports.registerUser = void 0;
 const notifications_1 = require("../database/notifications");
 const User_1 = __importDefault(require("../models/User"));
 const UserProfile_1 = __importDefault(require("../models/UserProfile"));
@@ -126,4 +126,20 @@ const quitJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.quitJob = quitJob;
+/**
+ * Cierra la sesión de trabajo referenciada.
+ * @returns HTTP 200 si se hace un correcto cierre,
+ * HTTP 404 si no se encuentra la sesión,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+const checkoutWorkSession = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const correctCheckout = yield User_1.default.checkoutWorkSession(req.body.workSessionId);
+        return res.sendStatus(correctCheckout ? 200 : 404);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+});
+exports.checkoutWorkSession = checkoutWorkSession;
 //# sourceMappingURL=users.controller.js.map

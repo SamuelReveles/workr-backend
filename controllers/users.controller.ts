@@ -114,3 +114,19 @@ export const quitJob = async (req, res) => {
         return res.sendStatus(500);
     }
 }
+
+/**
+ * Cierra la sesión de trabajo referenciada.
+ * @returns HTTP 200 si se hace un correcto cierre,
+ * HTTP 404 si no se encuentra la sesión,
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const checkoutWorkSession = async (req, res) => {
+    try {
+        const correctCheckout = await User.checkoutWorkSession(req.body.workSessionId);
+        return res.sendStatus(correctCheckout ? 200 : 404);
+    }
+    catch (err) {
+        return res.sendStatus(500);
+    }
+}

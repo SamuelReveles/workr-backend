@@ -20,6 +20,7 @@ const datetime_1 = require("../helpers/datetime");
 const ParameterizedQuery_1 = __importDefault(require("../database/ParameterizedQuery"));
 const queryGenerators_1 = require("../database/queryGenerators");
 const charts_1 = require("../helpers/charts");
+const cloudinary_1 = require("../helpers/cloudinary");
 class Company {
     /**
      * Registra una nueva empresa tomando los datos de la solicitud.
@@ -56,21 +57,15 @@ class Company {
      */
     static updateProfile(companyId, profilePictureFile, body) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
-            const oldProfilePictureId = (yield (0, connection_1.executeQuery)("SELECT profile_picture FROM Companies WHERE id = ?", [companyId]))[0]["profile_picture"];
-            // Se guarda la nueva foto de perfil en almacenamiento y se recupera su id de referencia.
-            const newProfilePictureId = yield (0, profilePictures_1.saveNewProfilePicture)(profilePictureFile, this.profilePicturesDirectory);
-            // Se generan todas las queries para actualizar la información de perfil de la empresa.
-            const updateTransactionQueries = this.generateUpdateTransactionQueries(companyId, newProfilePictureId, body);
-            // Transacción principal de cambios.
             try {
+                // Se obtiene el id de la antigua foto de perfil de la empresa para su referencia.
+                const oldProfilePictureURL = (yield (0, connection_1.executeQuery)("SELECT profile_picture FROM Companies WHERE id = ?", [companyId]))[0]["profile_picture"];
+                let profilePictureURL = yield (oldProfilePictureURL ? (0, cloudinary_1.replaceImage)(oldProfilePictureURL, profilePictureFile) : (0, cloudinary_1.createImage)(profilePictureFile));
+                const updateTransactionQueries = this.generateUpdateTransactionQueries(companyId, profilePictureURL, body);
                 yield (0, connection_1.executeTransaction)(updateTransactionQueries);
-                // Si la transacción se completa correctamente, se borrará la imagen de perfil previa.
-                (0, profilePictures_1.deleteProfilePictureFile)(oldProfilePictureId, this.profilePicturesDirectory);
             }
-            // Si ocurren errores en la transacción, se borrará la nueva imagen subida.
             catch (err) {
-                (0, profilePictures_1.deleteProfilePictureFile)(newProfilePictureId, this.profilePicturesDirectory);
+                console.log(err);
                 throw err;
             }
         });
@@ -122,6 +117,84 @@ class Company {
             return { apllications: (0, charts_1.formatChartData)(applicationsPoints), jobs: (0, charts_1.formatChartData)(newJobsDataPoints) };
         });
     }
+    static getWorkTimeChart(companyId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const workMinutesPerMonth = yield (0, connection_1.executeQuery)(`
+      SELECT 
+        SUM(
+          IF(ws.end_time IS NULL OR ws.minutes IS NULL, 480, ws.minutes)
+        ) AS quantity, 
+        MONTH(ws.date) AS month, 
+        YEAR(ws.date) AS year 
+      FROM Work_sessions ws
+      INNER JOIN Employees e ON ws.employee_id = e.id
+      WHERE e.company_id = ?
+      GROUP BY YEAR(ws.date), MONTH(ws.date);
+    `, [companyId]);
+            const formattedData = workMinutesPerMonth.map((row) => ({
+                quantity: Math.floor(row.quantity / 60),
+                month: row.month,
+                year: row.year
+            }));
+            const workTime = (0, charts_1.formatChartData)(formattedData);
+            // Top 5 empleados que más han trabajado
+            const topWorkers = yield (0, connection_1.executeQuery)(`
+      SELECT 
+        u.id,
+        u.full_name,
+        u.profile_picture,
+        FLOOR(SUM(
+          IF(wt.end_time IS NULL OR wt.minutes IS NULL, 480, wt.minutes)
+        ) / 60) AS hours_worked,
+        MIN(wt.date) AS start_date
+      FROM Work_sessions wt
+      INNER JOIN Employees e ON wt.employee_id = e.id
+      INNER JOIN Users u ON e.user_id = u.id
+      WHERE e.company_id = ?
+      GROUP BY u.id, u.full_name, u.profile_picture
+      ORDER BY hours_worked DESC
+      LIMIT 5;
+    `, [companyId]);
+            return {
+                workTime,
+                topWorkers: topWorkers.map((w) => ({
+                    id: w.id,
+                    full_name: w.full_name,
+                    profile_picture: w.profile_picture,
+                    hours_worked: w.hours_worked,
+                    start_date: w.start_date
+                }))
+            };
+        });
+    }
+    /**
+     * Obtiene la información de pago de la empresa.
+     * @param companyId Id de la empresa.
+     * @returns Conjunto de información de pago.
+     */
+    static getPayInfo(companyId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const date = new Date();
+            const paymentInfo = yield (0, connection_1.executeQuery)(`
+      SELECT 
+          COUNT(DISTINCT e.user_id) AS employees,
+          c.value AS pricePerUser
+      FROM Employees e
+      CROSS JOIN (SELECT value FROM Constants WHERE name = 'PRICE_PER_USER') c
+      WHERE e.company_id = ? AND (e.is_active = 1 OR e.accepted_date > ?);
+    `, [companyId, date]);
+            return { pricePerUser: paymentInfo[0].pricePerUser || 0, employeesCount: paymentInfo[0].employees || 0 };
+        });
+    }
+    /**
+     * Guarda la información de pago de una empresa
+     * @param payment Objeto de pago de la empresa
+     */
+    static savePayment(payment) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield (0, connection_1.executeQuery)(`INSERT INTO Stripe_Payments SET ?;`, [payment]);
+        });
+    }
     /**
      * Resuelve la ruta absoluta a una foto de perfil referenciada si existe.
      * @param id Identificador de la foto cuya ruta se busca.
@@ -153,7 +226,10 @@ class Company {
             companyId,
         ]));
         transactionQueries.push((0, queryGenerators_1.generateReferenceRecordsDeletionQuery)("Company_contact_links", "company_id", companyId));
-        transactionQueries.push((0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "Company_contact_links", companyId, (r) => [r.platform, r.link]));
+        const companyContactLinksInsertionQuery = (0, queryGenerators_1.generateReferenceRecordsInsertionQuery)(body.contactLinks, "Company_contact_links", companyId, (r) => [r.platform, r.link]);
+        if (companyContactLinksInsertionQuery != null) {
+            transactionQueries.push(companyContactLinksInsertionQuery);
+        }
         return transactionQueries;
     }
     /**

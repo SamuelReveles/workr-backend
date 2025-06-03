@@ -7,11 +7,15 @@ meta {
 post {
   url: {{host}}/api/users/update_profile
   body: multipartForm
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ2YTlhMzA2LWM4NDctNGZiNS1hZWY2LTRlZjExNjQ1MjFiYSIsInR5cGUiOiJ1c2VyIiwiaWF0IjoxNzQ4ODM2OTQwLCJleHAiOjE3NDg4NDA1NDB9.9TlvCudGIyF39imu_c-jKgDWyRkBwVjxEh-TE0WOocE
 }
 
 body:multipart-form {
-  profile_picture: @file()
+  profile_picture: @file(C:\Users\Samyr\Pictures\Camera Roll\imagen_pro.jpg)
   description: Test description
   contactLinks: '''
     [

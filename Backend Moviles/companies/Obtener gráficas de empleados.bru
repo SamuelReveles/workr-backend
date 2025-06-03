@@ -1,0 +1,19 @@
+meta {
+  name: Obtener gráficas de empleados
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{host}}/api/companies/company_charts
+  body: none
+  auth: bearer
+}
+
+headers {
+  Api-key: 80eab843e40016e05ee7ea58000bb869a3d4413d37ca2c5829debfee7bc53f92e598fc2377227f4edea135579bb5ef1e0812ed4bc1d3af83cb2208841451aa8d
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkYmJjZTliLTBkMzgtNDAzZi1iOTFjLWNmMDU1ZjUyYWU1NiIsInR5cGUiOiJjb21wYW55IiwiaWF0IjoxNzQ4OTI3MTY0LCJleHAiOjE3NDg5MzA3NjR9.uRq39C195pGwMS6IERGAfGIHpHvYCSvzLN2gtfhPO_w
+}

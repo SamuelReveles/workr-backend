@@ -9,6 +9,19 @@ export interface FormattedData {
     labels: string[];
 }
 
+export interface WorkTimeChart {
+    workTime: FormattedData;
+    topWorkers: TopWorker[];
+}
+
+export interface TopWorker {
+    id: string;
+    full_name: string;
+    profile_picture: string;
+    hours_worked: number;
+    start_date: string;
+}
+
 const monthNames = [
     "Enero", "Febrero", "Marzo", "Abril",
     "Mayo", "Junio", "Julio", "Agosto",
