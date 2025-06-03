@@ -117,6 +117,56 @@ class Company {
             return { apllications: (0, charts_1.formatChartData)(applicationsPoints), jobs: (0, charts_1.formatChartData)(newJobsDataPoints) };
         });
     }
+    static getWorkTimeChart(companyId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const workMinutesPerMonth = yield (0, connection_1.executeQuery)(`
+      SELECT 
+        SUM(
+          IF(ws.end_time IS NULL OR ws.minutes IS NULL, 480, ws.minutes)
+        ) AS quantity, 
+        MONTH(ws.date) AS month, 
+        YEAR(ws.date) AS year 
+      FROM Work_sessions ws
+      INNER JOIN Employees e ON ws.employee_id = e.id
+      WHERE e.company_id = ?
+      GROUP BY YEAR(ws.date), MONTH(ws.date);
+    `, [companyId]);
+            const formattedData = workMinutesPerMonth.map((row) => ({
+                quantity: Math.floor(row.quantity / 60),
+                month: row.month,
+                year: row.year
+            }));
+            const workTime = (0, charts_1.formatChartData)(formattedData);
+            // Top 5 empleados que más han trabajado
+            const topWorkers = yield (0, connection_1.executeQuery)(`
+      SELECT 
+        u.id,
+        u.full_name,
+        u.profile_picture,
+        FLOOR(SUM(
+          IF(wt.end_time IS NULL OR wt.minutes IS NULL, 480, wt.minutes)
+        ) / 60) AS hours_worked,
+        MIN(wt.date) AS start_date
+      FROM Work_sessions wt
+      INNER JOIN Employees e ON wt.employee_id = e.id
+      INNER JOIN Users u ON e.user_id = u.id
+      WHERE e.company_id = ?
+      GROUP BY u.id, u.full_name, u.profile_picture
+      ORDER BY hours_worked DESC
+      LIMIT 5;
+    `, [companyId]);
+            return {
+                workTime,
+                topWorkers: topWorkers.map((w) => ({
+                    id: w.id,
+                    full_name: w.full_name,
+                    profile_picture: w.profile_picture,
+                    hours_worked: w.hours_worked,
+                    start_date: w.start_date
+                }))
+            };
+        });
+    }
     /**
      * Obtiene la información de pago de la empresa.
      * @param companyId Id de la empresa.

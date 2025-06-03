@@ -7,7 +7,7 @@ import { getDateString } from "../helpers/datetime";
 import ParameterizedQuery from "../database/ParameterizedQuery";
 import { generateReferenceRecordsDeletionQuery, generateReferenceRecordsInsertionQuery } from "../database/queryGenerators";
 import { RowDataPacket } from "mysql2";
-import { DataPoint, formatChartData } from '../helpers/charts';
+import { DataPoint, formatChartData, WorkTimeChart } from '../helpers/charts';
 import { createImage, replaceImage } from "../helpers/cloudinary";
 
 class Company {
@@ -122,6 +122,63 @@ class Company {
     const newJobsDataPoints = newJobsData.map(j => { return { quantity: j.quantity, month: j.month, year: j.year } });
 
     return { apllications: formatChartData(applicationsPoints), jobs: formatChartData(newJobsDataPoints) };
+  }
+
+  public static async getWorkTimeChart(companyId: string): Promise<WorkTimeChart> {
+    const workMinutesPerMonth = await executeQuery(`
+      SELECT 
+        SUM(
+          IF(ws.end_time IS NULL OR ws.minutes IS NULL, 480, ws.minutes)
+        ) AS quantity, 
+        MONTH(ws.date) AS month, 
+        YEAR(ws.date) AS year 
+      FROM Work_sessions ws
+      INNER JOIN Employees e ON ws.employee_id = e.id
+      WHERE e.company_id = ?
+      GROUP BY YEAR(ws.date), MONTH(ws.date);
+    `,
+      [companyId]
+    );
+
+    const formattedData: DataPoint[] = workMinutesPerMonth.map((row: any) => ({
+      quantity: Math.floor(row.quantity / 60),
+      month: row.month,
+      year: row.year
+    }));
+
+    const workTime = formatChartData(formattedData);
+
+    // Top 5 empleados que más han trabajado
+    const topWorkers = await executeQuery(`
+      SELECT 
+        u.id,
+        u.full_name,
+        u.profile_picture,
+        FLOOR(SUM(
+          IF(wt.end_time IS NULL OR wt.minutes IS NULL, 480, wt.minutes)
+        ) / 60) AS hours_worked,
+        MIN(wt.date) AS start_date
+      FROM Work_sessions wt
+      INNER JOIN Employees e ON wt.employee_id = e.id
+      INNER JOIN Users u ON e.user_id = u.id
+      WHERE e.company_id = ?
+      GROUP BY u.id, u.full_name, u.profile_picture
+      ORDER BY hours_worked DESC
+      LIMIT 5;
+    `,
+      [companyId]
+    );
+
+    return {
+      workTime,
+      topWorkers: topWorkers.map((w: any) => ({
+        id: w.id,
+        full_name: w.full_name,
+        profile_picture: w.profile_picture,
+        hours_worked: w.hours_worked,
+        start_date: w.start_date
+      }))
+    };
   }
 
   /**

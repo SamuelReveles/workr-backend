@@ -37,6 +37,22 @@ export const companyCharts = async (req, res) => {
 }
 
 /**
+ * Retorna los datos de las gráficas de los trbajadores de una empresa
+ * @returns HTTP 200 con un JSON que contiene los datos de las gráficas
+ * HTTP 500 si ocurre un error al procesar la request.
+ */
+export const employeesCharts = async (req, res) => {
+  try {
+    const searchResults = await Company.getWorkTimeChart(req.companyId);
+    return res.status(200).json(searchResults);
+  }
+  catch (err) {
+    console.log(err)
+    return res.sendStatus(500);
+  }
+}
+
+/**
  * Actualiza los datos de perfil de una empresa tomando los datos de la solicitud.
  * @returns HTTP 200 si la actualización se completa correctamente,
  * HTTP 500 si ocurre algún error al procesar la request.

@@ -10,6 +10,7 @@ router.post("/register", [profilePicture_1.verifyProfilePicture, ...companies_1.
 router.post("/update_profile", [jwtAuth_1.verifyJWT, profilePicture_1.verifyProfilePicture, ...companies_1.updateProfile], companies_controller_1.updateCompanyProfile);
 router.post("/create_payment_intent", [jwtAuth_1.verifyJWT], companies_controller_1.createPaymentIntent);
 router.get("/company_charts", [jwtAuth_1.verifyJWT], companies_controller_1.companyCharts);
+router.get("/employees_charts", [jwtAuth_1.verifyJWT], companies_controller_1.employeesCharts);
 router.get("/company_pay_info", [jwtAuth_1.verifyJWT], companies_controller_1.getCompanyPayInfo);
 router.get("/profile/:companyId", jwtAuth_1.verifyJWT, companies_controller_1.getCompanyProfile);
 router.get("/profile_picture/:id", jwtAuth_1.verifyJWT, companies_controller_1.getProfilePicture);
