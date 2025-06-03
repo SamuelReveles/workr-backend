@@ -250,12 +250,15 @@ class Company {
       "Company_contact_links", "company_id", companyId
     ));
 
-    transactionQueries.push(generateReferenceRecordsInsertionQuery(
+    const companyContactLinksInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.contactLinks,
       "Company_contact_links",
       companyId,
       (r) => [r.platform, r.link]
-    ));
+    );
+    if (companyContactLinksInsertionQuery != null) {
+      transactionQueries.push(companyContactLinksInsertionQuery);
+    }
 
     return transactionQueries;
   }

@@ -27,10 +27,15 @@ function generateReferenceRecordsDeletionQuery(table, referenceName, referenceId
    * @param referenceId Id del elemento al que referencia cada registro de esta colección.
    * @param getRecordProperties Callback que produzca una lista con las propiedades a incluir
    * por cada registro en el orden de columnas de la BD.
-   * @returns Una ParameterizedQuery para la inserción de datos deseada.
+   * @returns Una ParameterizedQuery para la inserción de datos deseada si la lista
+   * no está vacía, o null si lo está.
    */
 function generateReferenceRecordsInsertionQuery(records, table, referenceId, getRecordProperties) {
     const recordsArray = Array.isArray(records) ? records : JSON.parse(records);
+    // Ante una lista vacía, no hay query de inserción.
+    if (recordsArray.length == 0) {
+        return null;
+    }
     let insertQuery = `INSERT INTO ${table} VALUES`;
     const insertParams = [];
     // Cada entrada de lista en el JSON se convertirá en un registro a insertar.

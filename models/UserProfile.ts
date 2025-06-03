@@ -16,7 +16,7 @@ class UserProfile {
    * @param profilePictureFile Nueva foto de perfil para el usuario.
    * @param body Conjunto de datos de perfil del usuario.
    */
-  public static async updateProfile(userId: string, profilePictureFile: string, body) {    
+  public static async updateProfile(userId: string, profilePictureFile: string, body) {
     try {
       // Se recupera el id de imagen de perfil previa del usuario para su referencia.
       const oldProfilePictureURL = (await executeQuery(
@@ -96,39 +96,51 @@ class UserProfile {
 
     // Queries para enlaces de contacto.
     parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_contact_links", "user_id", userId));
-    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
+    const contactLinksInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.contactLinks,
       "User_contact_links",
       userId,
       (r) => [r.platform, r.link]
-    ));
+    );
+    if (contactLinksInsertionQuery != null) {
+      parameterizedQueries.push(contactLinksInsertionQuery);
+    }
 
     // Queries para registros de experiencia.
     parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Experience_records", "user_id", userId));
-    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
+    const experienceRecordsInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.experience,
       "Experience_records",
       userId,
       (r) => [r.position, r.company, r.startDate, r.endDate, r.description]
-    ));
+    );
+    if (experienceRecordsInsertionQuery != null) {
+      parameterizedQueries.push(experienceRecordsInsertionQuery);
+    }
 
     // Queries para habilidades.
     parameterizedQueries.push(generateReferenceRecordsDeletionQuery("User_skills", "user_id", userId));
-    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
+    const userSkillsInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.skills,
       "User_skills",
       userId,
       (r) => [r]
-    ));
+    );
+    if (userSkillsInsertionQuery != null) {
+      parameterizedQueries.push(userSkillsInsertionQuery);
+    }
 
     // Queries para registros de educación.
     parameterizedQueries.push(generateReferenceRecordsDeletionQuery("Education_records", "user_id", userId));
-    parameterizedQueries.push(generateReferenceRecordsInsertionQuery(
+    const educationRecordsInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.education,
       "Education_records",
       userId,
       (r) => [r.title, r.organization, r.startDate, r.endDate, r.description]
-    ));
+    );
+    if (educationRecordsInsertionQuery != null) {
+      parameterizedQueries.push(educationRecordsInsertionQuery);
+    }
 
     return parameterizedQueries;
   }

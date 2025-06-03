@@ -37,12 +37,15 @@ class Vacancy {
 
     // Se agrega una query generada para insertar todas las skills asociadas
     // a la vacante.
-    transactionQueries.push(generateReferenceRecordsInsertionQuery(
+    const vacancySkillsInsertionQuery = generateReferenceRecordsInsertionQuery(
       body.skills,
       "Vacancy_skills",
       vacancyId,
       skill => [ skill ]
-    ));
+    );
+    if (vacancySkillsInsertionQuery != null) {
+      transactionQueries.push(vacancySkillsInsertionQuery);
+    }
 
     // Se ejecuta la transacción completa de cambios.
     await executeTransaction(transactionQueries);
