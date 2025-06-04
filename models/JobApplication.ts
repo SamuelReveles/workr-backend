@@ -317,7 +317,7 @@ class JobApplication {
     const params = [];
     for (const id of newHiresIds) {
       query += "(?, ?, ?, ?, ?, ?, ?), ";
-      params.push(generateUUID(), id, companyId, getDateString(), 1, position, null);
+      params.push(generateUUID(), id, companyId, 1, getDateString(), position, null);
     }
     query = query.substring(0, query.length - 2);
 
