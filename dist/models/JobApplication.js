@@ -214,13 +214,14 @@ class JobApplication {
     }
     /**
      * Agrega una serie de empleados recién contratados a la BD.
+     * @param position Nombre de la posición para la que se contrata.
      * @param newHiresIds Arreglo con los id de usuario de los aspirantes contratados.
      * @param companyId Id de la empresa que contrata.
      * @returns Un arreglo que contiene cualquier posible usuario no encontrado,
      * si es que alguno no se encontró, o un arreglo vacío en caso de que todos los
      * contratados se hayan registrado.
      */
-    static registerNewHires(newHiresIds, companyId) {
+    static registerNewHires(position, newHiresIds, companyId) {
         return __awaiter(this, void 0, void 0, function* () {
             // Se busca información con todos los ids de aspirantes recién contratados.
             const usersResults = yield (0, connection_1.executeQuery)("SELECT id FROM Users WHERE id IN (?)", [newHiresIds]);
@@ -252,7 +253,7 @@ class JobApplication {
                 return errorIds;
             }
             // Se genera y ejecuta la query para insertar nuevos empleados a la empresa.
-            const { query, params } = this.generateEmployeesInsertionQuery(newHiresIds, companyId);
+            const { query, params } = this.generateEmployeesInsertionQuery(position, newHiresIds, companyId);
             yield (0, connection_1.executeQuery)(query, params);
             // Se retorna un arreglo vacío indicando que no hay
             // contratados que no fueran encontrados en la BD.
@@ -261,16 +262,17 @@ class JobApplication {
     }
     /**
      * Genera una query para registrar a todos los nuevos contratados de una empresa.
+     * @param position Nombre de la posición para la que se contrata.
      * @param newHiresIds Ids de usuario de todos los nuevos contratados.
      * @param companyId Id de la emprsa que contrata.
      * @returns Query y parámetros para la inserción de los nuevos empleados.
      */
-    static generateEmployeesInsertionQuery(newHiresIds, companyId) {
+    static generateEmployeesInsertionQuery(position, newHiresIds, companyId) {
         let query = "INSERT INTO Employees VALUES ";
         const params = [];
         for (const id of newHiresIds) {
-            query += "(?, ?, ?, ?), ";
-            params.push((0, uuid_1.generateUUID)(), id, companyId, (0, datetime_1.getDateString)());
+            query += "(?, ?, ?, ?, ?, ?, ?), ";
+            params.push((0, uuid_1.generateUUID)(), id, companyId, 1, (0, datetime_1.getDateString)(), position, null);
         }
         query = query.substring(0, query.length - 2);
         return { query, params };

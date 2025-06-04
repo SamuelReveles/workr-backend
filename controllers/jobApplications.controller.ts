@@ -160,13 +160,14 @@ export const updateInterviewNotes = async (req, res) => {
 /**
  * Agrega una lista de empleados recién contratados a la BD.
  * @returns HTTP 201 si los contratados se registran correctamente,
- * HTTP 404 con un JSON que contiene ids de los contratados no encontrados
- * en la BD si es que hay alguno no encontrado,
+ * HTTP 404 con un JSON que contiene los ids de empleados que no
+ * pueden ser contratados ya sea porque no se encontraron los usuarios
+ * o porque ya están registrados como empleados en la BD,
  * HTTP 500 si ocurre un error al procesar la request.
  */
 export const registerNewHires = async (req, res) => {
   try {
-    const errorIds = await JobApplication.registerNewHires(req.body.newHiresIds, req.companyId);
+    const errorIds = await JobApplication.registerNewHires(req.body.position, req.body.newHiresIds, req.companyId);
     
     if (errorIds.length == 0) {
       return res.sendStatus(201);

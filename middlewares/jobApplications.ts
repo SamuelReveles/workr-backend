@@ -49,6 +49,7 @@ export const updatedInterviewNotes = [
 ];
 
 export const newHires = [
+  body("position").notEmpty().isString().withMessage(messageFor("position")),
   body("newHiresIds").custom(newHiresValidator),
   validator,
 ];
