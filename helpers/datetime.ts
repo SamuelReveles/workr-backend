@@ -42,3 +42,22 @@ export function getTimeString() {
   const seconds = String(now.getSeconds()).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 }
+
+/*
+ * Obtiene la marca de tiempo actual.
+ * @returns Objeto Date que contiene la marca de tiempo actual.
+ */
+export function getCurrentTime() {
+  return new Date();
+}
+
+/**
+ * Verifica si un texto es una correcta representación de timestamp.
+ * @param dateTimeString Texto a validar como timestamp.
+ * @returns True si el texto es una adecuada representación de timestamp,
+ * False de otro modo.
+ */
+export function isValidDateTimeString(dateTimeString: string) {
+  const date = new Date(dateTimeString);
+  return !isNaN(date.getTime());
+}

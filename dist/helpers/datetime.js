@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDateString = getDateString;
 exports.calculateDaysFrom = calculateDaysFrom;
 exports.getTimeString = getTimeString;
+exports.getCurrentTime = getCurrentTime;
+exports.isValidDateTimeString = isValidDateTimeString;
 /**
  * Obtiene la fecha actual y la devuelve en una cadena con formato AAAA-MM-DD.
  * @returns Cadena que contiene la fecha actual.
@@ -42,5 +44,22 @@ function getTimeString() {
     const minutes = String(now.getMinutes()).padStart(2, "0");
     const seconds = String(now.getSeconds()).padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
+}
+/*
+ * Obtiene la marca de tiempo actual.
+ * @returns Objeto Date que contiene la marca de tiempo actual.
+ */
+function getCurrentTime() {
+    return new Date();
+}
+/**
+ * Verifica si un texto es una correcta representación de timestamp.
+ * @param dateTimeString Texto a validar como timestamp.
+ * @returns True si el texto es una adecuada representación de timestamp,
+ * False de otro modo.
+ */
+function isValidDateTimeString(dateTimeString) {
+    const date = new Date(dateTimeString);
+    return !isNaN(date.getTime());
 }
 //# sourceMappingURL=datetime.js.map

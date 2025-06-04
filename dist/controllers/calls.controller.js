@@ -23,9 +23,9 @@ const Call_1 = __importDefault(require("../models/Call"));
  */
 const generateEmployeeCallAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const token = yield Call_1.default.generateEmployeeCallToken(req.userId);
-        if (token != null) {
-            return res.status(200).json({ token });
+        const credentials = yield Call_1.default.generateEmployeeCallToken(req.userId);
+        if (credentials != null) {
+            return res.status(200).json(credentials);
         }
         else {
             return res.sendStatus(404);

@@ -12,7 +12,7 @@ class Call {
   public static async generateEmployeeCallToken(userId: string) {
     // Se busca la información de empleado del usuario referenciado.
     const employeeResults = await executeQuery(
-      "SELECT company_id, call_user_id FROM Employees WHERE user_id = ?",
+      "SELECT company_id, call_user_id FROM Employees WHERE user_id = ? AND is_active = 1",
       [ userId ]
     );
 
@@ -29,10 +29,10 @@ class Call {
     // Obtención de variables de entorno.
     const APP_ID = process.env.APP_ID;
     const APP_CERTIFICATE = process.env.APP_CERTIFICATE;
-    if (APP_ID == undefined || APP_ID == "") {
+    if (!APP_ID || APP_ID === "") {
       throw new Error("Configuración errónea de APP_ID");
     }
-    if (APP_CERTIFICATE == undefined || APP_CERTIFICATE == "") {
+    if (!APP_CERTIFICATE || APP_CERTIFICATE === "") {
       throw new Error("Configuración errónea de APP_CERTIFICATE");
     }
 
@@ -41,12 +41,12 @@ class Call {
     const ROLE = RtcRole.PUBLISHER;
 
     // El token generado y los permisos para interactuar en llamada
-    // serán válidos durante diez minutos.
-    const TOKEN_EXPIRATION_SECONDS = 600;
+    // serán válidos durante un minuto.
+    const TOKEN_EXPIRATION_SECONDS = 60;
     const CALL_PRIVILEGES_EXPIRATION_SECONDS = TOKEN_EXPIRATION_SECONDS;
 
     // Se genera y devuelve el token con la configuración dada.
-    return RtcTokenBuilder.buildTokenWithUid(
+    const token = RtcTokenBuilder.buildTokenWithUid(
       APP_ID,
       APP_CERTIFICATE,
       COMPANY_ID,
@@ -55,6 +55,8 @@ class Call {
       TOKEN_EXPIRATION_SECONDS,
       CALL_PRIVILEGES_EXPIRATION_SECONDS
     );
+
+    return { token, callUserId: `${CALL_USER_ID}` };
   }
 
   /**
@@ -68,7 +70,7 @@ class Call {
   public static async getEmployeeCompanyCallDirectory(userId: string) {
     // Se busca el registro de empleado del usuario.
     const employeeResults = await executeQuery(
-      "SELECT company_id FROM Employees WHERE user_id = ?",
+      "SELECT company_id FROM Employees WHERE user_id = ? AND is_active = 1",
       [ userId ]
     );
 
@@ -83,7 +85,7 @@ class Call {
     const directoryResults = await executeQuery(
       "SELECT full_name, position, call_user_id " +
       "FROM Users INNER JOIN Employees ON Users.id = Employees.user_id " +
-      "WHERE Employees.company_id = ?",
+      "WHERE Employees.call_user_id IS NOT NULL AND Employees.company_id = ? AND Employees.is_active = 1",
       [ employeeResults[0]["company_id"] ]
     );
 
@@ -112,7 +114,7 @@ class Call {
   public static async getUsersInCompanyCall(userId: string) {
     // Se busca el registro de empleado del usuario.
     const employeeResults = await executeQuery(
-      "SELECT company_id FROM Employees WHERE user_id = ?",
+      "SELECT company_id FROM Employees WHERE user_id = ? AND is_active = 1",
       [ userId ]
     );
 
@@ -129,13 +131,13 @@ class Call {
     const APP_ID = process.env.APP_ID
     const CUSTOMER_KEY = process.env.CUSTOMER_KEY;
     const CUSTOMER_SECRET = process.env.CUSTOMER_SECRET;
-    if (APP_ID == undefined || APP_ID == "") {
+    if (!APP_ID || APP_ID === "") {
       throw new Error("Configuración errónea de APP_ID");
     }
-    if (CUSTOMER_KEY == undefined || CUSTOMER_KEY == "") {
+    if (!CUSTOMER_KEY || CUSTOMER_KEY === "") {
       throw new Error("Configuración errónea de CUSTOMER_KEY");
     }
-    if (CUSTOMER_SECRET == undefined || CUSTOMER_SECRET == "") {
+    if (!CUSTOMER_SECRET || CUSTOMER_SECRET === "") {
       throw new Error("Configuración errónea de CUSTOMER_SECRET");
     }
 
@@ -162,15 +164,15 @@ class Call {
 
     // Se extraen y validan los datos de la llamada desde los resultados de la API.
     const callData = apiResults["data"];
-    if (callData == undefined) {
+    if (!callData) {
       throw new Error("No se pudo obtener información de la llamada");
     }
     const callExists = callData["channel_exist"];
-    if (callExists == undefined) {
+    if (callExists === undefined) {
       throw new Error("No se pudo confirmar la existencia de la llamada");
     }
     const users = callData["users"];
-    if (callExists && users == undefined) {
+    if (callExists && !users) {
       throw new Error("No se pudo obtener la lista de usuarios de la llamada");
     }
 

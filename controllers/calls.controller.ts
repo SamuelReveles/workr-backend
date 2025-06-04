@@ -9,9 +9,9 @@ import Call from "../models/Call";
  */
 export const generateEmployeeCallAccessToken = async (req, res) => {
   try {
-    const token = await Call.generateEmployeeCallToken(req.userId);
-    if (token != null) {
-      return res.status(200).json({ token });
+    const credentials = await Call.generateEmployeeCallToken(req.userId);
+    if (credentials != null) {
+      return res.status(200).json(credentials);
     }
     else {
       return res.sendStatus(404);

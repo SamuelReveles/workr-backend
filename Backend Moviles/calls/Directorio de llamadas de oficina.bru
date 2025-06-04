@@ -1,0 +1,17 @@
+meta {
+  name: Directorio de llamadas de oficina
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/calls/company_call_directory
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "companyId": ""
+  }
+}
